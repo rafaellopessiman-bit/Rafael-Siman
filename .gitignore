@@ -1,0 +1,40 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Data artifacts
+data/atlas_local.db
+data/foto.png
+data/llm_cache.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Test / Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Archive (backups, clutter)
+_archive/
+
+# Docker volumes
+atlas-local-data/
+atlas-local-venv/

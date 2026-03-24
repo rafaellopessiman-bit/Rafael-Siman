@@ -1,0 +1,67 @@
+# ── atlas_local — NestJS Enterprise Dev Dockerfile ───────────────────────────
+# Multi-stage dev image: Node 22 LTS + mongosh + hot-reload
+# Build:  docker compose build nestjs-app
+# ─────────────────────────────────────────────────────────────────────────────
+FROM node:22-bookworm-slim AS base
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Dependências de sistema (mongosh para healthcheck/debug, curl, git)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       curl \
+       git \
+       gnupg \
+       jq \
+       procps \
+       tini \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instala mongosh para interação direta com Atlas Local
+RUN curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc \
+    | gpg --dearmor -o /usr/share/keyrings/mongodb-archive-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/mongodb-archive-keyring.gpg] https://repo.mongodb.org/apt/debian bookworm/mongodb-org/8.0 main" \
+    | tee /etc/apt/sources.list.d/mongodb-org-8.0.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends mongodb-mongosh \
+    && rm -rf /var/lib/apt/lists/*
+
+# ── Stage: development ──────────────────────────────────────────────────────
+FROM base AS development
+
+WORKDIR /app
+
+# Instala NestJS CLI globalmente para scaffolding
+RUN npm i -g @nestjs/cli
+
+# Copia package files e instala dependências (cache de layer)
+COPY package*.json ./
+RUN npm ci
+
+# O restante do código é montado via volume pelo Docker Compose
+COPY . .
+
+# Porta da aplicação NestJS
+EXPOSE 3000
+
+# Usa tini como init process para signal handling correto
+ENTRYPOINT ["/usr/bin/tini", "--"]
+
+# Comando padrão — sobrescrito pelo docker-compose
+CMD ["npm", "run", "start:dev"]
+
+# ── Stage: production ───────────────────────────────────────────────────────
+FROM base AS production
+
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY --from=development /app/dist ./dist
+
+EXPOSE 3000
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["node", "dist/main"]

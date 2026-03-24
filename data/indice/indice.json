@@ -1,0 +1,44 @@
+{
+  "gerado_em": "2026-03-20T06:22:27",
+  "total_arquivos": 4,
+  "extensoes_suportadas": [
+    ".csv",
+    ".json",
+    ".md",
+    ".txt"
+  ],
+  "arquivos": [
+    {
+      "nome": "config.json",
+      "extensao": ".json",
+      "tamanho_bytes": 73,
+      "caminho": "data\\entrada\\config.json",
+      "previa": "{ \"cliente\": \"Atlas\", \"status\": \"ativo\", \"prioridade\": \"alta\" }",
+      "conteudo_indexado": "{ \"cliente\": \"Atlas\", \"status\": \"ativo\", \"prioridade\": \"alta\" }"
+    },
+    {
+      "nome": "dados.csv",
+      "extensao": ".csv",
+      "tamanho_bytes": 40,
+      "caminho": "data\\entrada\\dados.csv",
+      "previa": "produto,quantidade,preco caneta,10,2.50",
+      "conteudo_indexado": "produto,quantidade,preco caneta,10,2.50"
+    },
+    {
+      "nome": "notas.md",
+      "extensao": ".md",
+      "tamanho_bytes": 80,
+      "caminho": "data\\entrada\\notas.md",
+      "previa": "# Notas técnicas Ajustar rotina de consolidação antes do fechamento diário.",
+      "conteudo_indexado": "# Notas técnicas Ajustar rotina de consolidação antes do fechamento diário."
+    },
+    {
+      "nome": "relatorio.txt",
+      "extensao": ".txt",
+      "tamanho_bytes": 79,
+      "caminho": "data\\entrada\\relatorio.txt",
+      "previa": "Receita líquida do mês cresceu 8 por cento em relação ao período anterior.",
+      "conteudo_indexado": "Receita líquida do mês cresceu 8 por cento em relação ao período anterior."
+    }
+  ]
+}

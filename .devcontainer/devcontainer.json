@@ -1,0 +1,36 @@
+{
+  "name": "Atlas Local - NestJS Enterprise Dev Environment",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "nestjs-app",
+  "workspaceFolder": "/app",
+  "shutdownAction": "stopCompose",
+  "postCreateCommand": "npm ci",
+  "forwardPorts": [3000, 27017, 5678],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "mongodb.mongodb-vscode",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode-remote.remote-ssh",
+        "github.copilot",
+        "github.copilot-chat",
+        "streetsidesoftware.code-spell-checker",
+        "mikestead.dotenv",
+        "ms-python.python",
+        "ms-python.pylance",
+        "ms-python.debugpy"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "eslint.validate": ["typescript"],
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "mongodb.defaultConnectionString": "mongodb://admin:${localEnv:MONGODB_PASSWORD:AtlasLocal2026!Secure}@localhost:27017/atlas_local_db?authSource=admin",
+        "python.defaultInterpreterPath": "/app/python-cli/.venv/bin/python"
+      }
+    }
+  },
+  "remoteUser": "node"
+}

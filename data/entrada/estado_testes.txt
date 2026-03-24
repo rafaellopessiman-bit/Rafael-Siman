@@ -1,0 +1,10 @@
+============================= test session starts =============================
+Atualizacao: 24/03/2026 - 81/81 testes passando
+
+Fase 1 (original): 56 testes
+Fase 2 (cache + async + metrics): +19 testes
+Fase C (persistent cache + async errors): +6 testes
+Total: 81/81 PASSANDO em ~0.98s
+
+Comando: $env:PYTHONPATH = '.'; & '.venv\Scripts\pytest.exe' 'tests/' '-q' '--tb=short'
+

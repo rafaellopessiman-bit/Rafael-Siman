@@ -1,0 +1,68 @@
+# ── atlas_local — Docker Compose (NestJS + MongoDB Atlas Local) ──────────────
+# Uso:  docker compose up -d
+# Env:  Copie .env.example → .env e preencha as credenciais
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── MongoDB Atlas Local ────────────────────────────────────────────────────
+  atlas-local-db:
+    image: mongodb/mongodb-atlas-local:latest
+    container_name: atlas-local-db
+    restart: unless-stopped
+    ports:
+      - "${MONGODB_PORT:-27017}:27017"
+    environment:
+      MONGODB_INITDB_ROOT_USERNAME: ${MONGODB_USER:-admin}
+      MONGODB_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:-AtlasLocal2026!Secure}
+      MONGODB_INITDB_DATABASE: ${MONGODB_DB:-atlas_local_db}
+    volumes:
+      - atlas-local-data:/data/db
+      - ./mongo-init-scripts:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.runCommand({ping:1}).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - atlas-network
+
+  # ── NestJS Application ────────────────────────────────────────────────────
+  nestjs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: atlas-local-nestjs
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      MONGODB_URI: "mongodb://${MONGODB_USER:-admin}:${MONGODB_PASSWORD:-AtlasLocal2026!Secure}@atlas-local-db:27017/${MONGODB_DB:-atlas_local_db}?authSource=admin"
+      PORT: ${APP_PORT:-3000}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      ATLAS_VECTOR_SEARCH_ENABLED: ${ATLAS_VECTOR_SEARCH_ENABLED:-false}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      atlas-local-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    command: npm run start:dev
+    networks:
+      - atlas-network
+
+networks:
+  atlas-network:
+    driver: bridge
+
+volumes:
+  atlas-local-data:
+    name: atlas-local-data
