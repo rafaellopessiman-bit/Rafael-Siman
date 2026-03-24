@@ -11,6 +11,11 @@ import { IndexDocumentUseCase } from './application/use-cases/index-document.use
 import { SearchDocumentsUseCase } from './application/use-cases/search-documents.use-case';
 import { DeleteDocumentUseCase } from './application/use-cases/delete-document.use-case';
 import { FindBySourceFileUseCase } from './application/use-cases/find-by-source-file.use-case';
+import { ChunkingService } from './domain/services/chunking.service';
+import {
+  EMBEDDING_SERVICE,
+  EmbeddingService,
+} from './domain/services/embedding.service';
 
 @Module({
   imports: [
@@ -24,11 +29,16 @@ import { FindBySourceFileUseCase } from './application/use-cases/find-by-source-
       provide: KNOWLEDGE_REPOSITORY,
       useClass: MongooseKnowledgeRepository,
     },
+    {
+      provide: EMBEDDING_SERVICE,
+      useClass: EmbeddingService,
+    },
+    ChunkingService,
     IndexDocumentUseCase,
     SearchDocumentsUseCase,
     DeleteDocumentUseCase,
     FindBySourceFileUseCase,
   ],
-  exports: [KNOWLEDGE_REPOSITORY],
+  exports: [KNOWLEDGE_REPOSITORY, EMBEDDING_SERVICE, ChunkingService],
 })
 export class KnowledgeModule {}

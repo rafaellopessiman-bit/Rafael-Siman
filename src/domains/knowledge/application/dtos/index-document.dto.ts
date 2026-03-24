@@ -1,14 +1,16 @@
-import { IsString, IsOptional, IsEnum, IsInt, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { FileType } from '@/domains/shared/enums';
 
 export class IndexDocumentDto {
   @ApiProperty({ description: 'Caminho do arquivo de origem' })
   @IsString()
+  @IsNotEmpty()
   sourceFile!: string;
 
   @ApiProperty({ description: 'Conteúdo textual do documento' })
   @IsString()
+  @IsNotEmpty()
   content!: string;
 
   @ApiPropertyOptional({ enum: FileType, description: 'Tipo do arquivo' })

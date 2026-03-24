@@ -20,6 +20,6 @@ module.exports = tseslint.config(
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', 'python-cli/', '_archive/', 'eslint.config.js'],
+    ignores: ['dist/', 'node_modules/', 'tests/', '_archive/', 'eslint.config.js'],
   },
 );

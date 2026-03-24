@@ -35,6 +35,14 @@ htmlcov/
 # Archive (backups, clutter)
 _archive/
 
+# Logs (gerados por scripts de operação)
+logs/
+
+# Backup data
+data/backup/
+data/temp/
+
 # Docker volumes
 atlas-local-data/
 atlas-local-venv/
+node_modules

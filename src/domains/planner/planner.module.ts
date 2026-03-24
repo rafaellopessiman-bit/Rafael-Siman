@@ -7,6 +7,7 @@ import {
 import { MongooseDocumentIndexRepository } from './infrastructure/persistence/document-index.repository';
 import { DOCUMENT_INDEX_REPOSITORY } from './domain/repositories/document-index.repository.interface';
 import { UpsertDocumentIndexUseCase } from './application/use-cases/upsert-document-index.use-case';
+import { PlannerController } from './infrastructure/http/planner.controller';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { UpsertDocumentIndexUseCase } from './application/use-cases/upsert-docum
       { name: DocumentIndex.name, schema: DocumentIndexSchema },
     ]),
   ],
+  controllers: [PlannerController],
   providers: [
     {
       provide: DOCUMENT_INDEX_REPOSITORY,
@@ -21,6 +23,6 @@ import { UpsertDocumentIndexUseCase } from './application/use-cases/upsert-docum
     },
     UpsertDocumentIndexUseCase,
   ],
-  exports: [DOCUMENT_INDEX_REPOSITORY],
+  exports: [DOCUMENT_INDEX_REPOSITORY, UpsertDocumentIndexUseCase],
 })
 export class PlannerModule {}

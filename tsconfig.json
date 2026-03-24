@@ -20,8 +20,9 @@
     "noUnusedParameters": true,
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "types": ["jest", "node"]
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "python-cli", "_archive"]
+  "exclude": ["node_modules", "dist", "tests", "_archive"]
 }

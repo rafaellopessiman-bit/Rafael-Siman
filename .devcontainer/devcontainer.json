@@ -27,8 +27,8 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "eslint.validate": ["typescript"],
         "typescript.tsdk": "node_modules/typescript/lib",
-        "mongodb.defaultConnectionString": "mongodb://admin:${localEnv:MONGODB_PASSWORD:AtlasLocal2026!Secure}@localhost:27017/atlas_local_db?authSource=admin",
-        "python.defaultInterpreterPath": "/app/python-cli/.venv/bin/python"
+        "mongodb.defaultConnectionString": "mongodb://${localEnv:MONGODB_APP_USER:atlas_app}:${localEnv:MONGODB_APP_PASSWORD}@localhost:27017/atlas_local_db?authSource=atlas_local_db",
+        "python.defaultInterpreterPath": "/app/.venv/bin/python"
       }
     }
   },

@@ -9,6 +9,7 @@ import {
   IDocumentIndexRepository,
   UpsertDocumentIndexData,
 } from '../../domain/repositories/document-index.repository.interface';
+import { DocumentStatus } from '../../../shared/enums';
 
 @Injectable()
 export class MongooseDocumentIndexRepository
@@ -34,7 +35,7 @@ export class MongooseDocumentIndexRepository
   }
 
   async findPending(): Promise<DocumentIndexDocument[]> {
-    return this.indexModel.find({ status: 'pending' }).exec();
+    return this.indexModel.find({ status: DocumentStatus.PENDING }).exec();
   }
 
   async findAll(): Promise<DocumentIndexDocument[]> {

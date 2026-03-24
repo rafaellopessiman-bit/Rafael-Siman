@@ -46,6 +46,33 @@ export class MongooseKnowledgeRepository implements IKnowledgeRepository {
       .exec();
   }
 
+  async vectorSearch(
+    embedding: number[],
+    limit: number,
+  ): Promise<KnowledgeDocumentDocument[]> {
+    const results = await this.knowledgeModel
+      .aggregate([
+        {
+          $vectorSearch: {
+            index: 'knowledge_documents_embedding_vs_idx',
+            path: 'embedding',
+            queryVector: embedding,
+            numCandidates: limit * 10,
+            limit,
+            filter: { isActive: true },
+          },
+        },
+        {
+          $addFields: {
+            score: { $meta: 'vectorSearchScore' },
+          },
+        },
+      ])
+      .exec();
+
+    return results as KnowledgeDocumentDocument[];
+  }
+
   async deleteBySourceFile(sourceFile: string): Promise<number> {
     const result = await this.knowledgeModel
       .deleteMany({ sourceFile })

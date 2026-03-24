@@ -13,8 +13,10 @@ services:
       - "${MONGODB_PORT:-27017}:27017"
     environment:
       MONGODB_INITDB_ROOT_USERNAME: ${MONGODB_USER:-admin}
-      MONGODB_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:-AtlasLocal2026!Secure}
+      MONGODB_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:?Defina MONGODB_PASSWORD no .env}
       MONGODB_INITDB_DATABASE: ${MONGODB_DB:-atlas_local_db}
+      MONGODB_APP_USER: ${MONGODB_APP_USER:-atlas_app}
+      MONGODB_APP_PASSWORD: ${MONGODB_APP_PASSWORD:?Defina MONGODB_APP_PASSWORD no .env}
     volumes:
       - atlas-local-data:/data/db
       - ./mongo-init-scripts:/docker-entrypoint-initdb.d:ro
@@ -38,10 +40,14 @@ services:
       - "${APP_PORT:-3000}:3000"
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      MONGODB_URI: "mongodb://${MONGODB_USER:-admin}:${MONGODB_PASSWORD:-AtlasLocal2026!Secure}@atlas-local-db:27017/${MONGODB_DB:-atlas_local_db}?authSource=admin"
+      MONGODB_URI: "mongodb://${MONGODB_APP_USER:-atlas_app}:${MONGODB_APP_PASSWORD:?Defina MONGODB_APP_PASSWORD no .env}@atlas-local-db:27017/${MONGODB_DB:-atlas_local_db}?authSource=${MONGODB_DB:-atlas_local_db}"
       PORT: ${APP_PORT:-3000}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_BASE_URL: ${EMBEDDING_BASE_URL:-https://api.openai.com/v1}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-text-embedding-3-small}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-1536}
       ATLAS_VECTOR_SEARCH_ENABLED: ${ATLAS_VECTOR_SEARCH_ENABLED:-false}
     volumes:
       - .:/app

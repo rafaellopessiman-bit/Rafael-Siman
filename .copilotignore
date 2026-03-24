@@ -1,0 +1,26 @@
+# Sensível
+.env
+.env.local
+.env.development
+.env.production
+*.pem
+*.key
+*.p12
+
+# Dados locais e artefatos
+.venv/
+logs/
+data/backup/
+data/temp/
+data/indice/
+data/processados/
+_archive/
+*.db
+*.db-wal
+*.db-shm
+
+# Dependências e build
+node_modules/
+dist/
+build/
+coverage/

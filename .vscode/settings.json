@@ -1,4 +1,15 @@
 {
+  // --- Privacidade / Telemetria ---
+  "telemetry.telemetryLevel": "off",
+
+  // --- Markdownlint ---
+  "markdownlint.ignore": [".aiexclude", ".copilotignore"],
+
+  // --- AI / Copilot on-demand ---
+  "editor.inlineSuggest.enabled": false,
+  "github.copilot.inlineSuggest.enable": false,
+  "github.copilot.nextEditSuggestions.enabled": false,
+
   // --- Python ---
   "python.defaultInterpreterPath": "c:\\Users\\bonvi\\Documents\\atlas_local\\.venv\\Scripts\\python.exe",
   "python.terminal.activateEnvInCurrentTerminal": true,
@@ -29,7 +40,7 @@
   "peacock.affectTitleBar": false,
 
   // --- MongoDB for VS Code ---
-  "mongodb.defaultConnectionString": "mongodb://admin:password@localhost:27017/?authSource=admin",
+  "mongodb.defaultConnectionString": "mongodb://localhost:27017/atlas_local_db?authSource=admin",
   "mongodb.connectOnStartup": false,
   "mongodb.showGettingStarted": false,
   "mongodb.useDefaultTemplateForPlaygrounds": true,
@@ -66,5 +77,11 @@
     "**/data/indice": true,
     "**/data/processados": true,
     "**/_archive": true
+  },
+  "chat.tools.terminal.autoApprove": {
+    "/^npx tsc --noEmit$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
   }
 }

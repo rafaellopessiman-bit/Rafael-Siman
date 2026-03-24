@@ -5,9 +5,11 @@ import {
   MongooseHealthIndicator,
 } from '@nestjs/terminus';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Public } from '../shared/guards/public.decorator';
 
 @ApiTags('health')
 @Controller('health')
+@Public()
 export class HealthController {
   constructor(
     private health: HealthCheckService,

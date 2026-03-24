@@ -8,6 +8,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
+import { Public } from '../../../../shared/guards/public.decorator';
 import { IndexDocumentUseCase } from '../../application/use-cases/index-document.use-case';
 import { SearchDocumentsUseCase } from '../../application/use-cases/search-documents.use-case';
 import { DeleteDocumentUseCase } from '../../application/use-cases/delete-document.use-case';
@@ -17,6 +18,7 @@ import { SearchQueryDto } from '../../application/dtos/search-query.dto';
 
 @ApiTags('knowledge')
 @Controller('knowledge')
+@Public()
 export class KnowledgeController {
   constructor(
     private readonly indexDocumentUseCase: IndexDocumentUseCase,

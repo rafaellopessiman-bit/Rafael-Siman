@@ -1,0 +1,40 @@
+name: Smoke Gates — Ask / Extract / Act
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke-gates:
+    name: Surface Smoke Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Ask smoke test
+        run: npx jest test/smoke-ask.e2e-spec.ts --config ./test/jest-e2e.json --verbose
+        env:
+          NODE_ENV: test
+
+      - name: Run Extract smoke test
+        run: npx jest test/smoke-extract.e2e-spec.ts --config ./test/jest-e2e.json --verbose
+        env:
+          NODE_ENV: test
+
+      - name: Run Act smoke test
+        run: npx jest test/smoke-act.e2e-spec.ts --config ./test/jest-e2e.json --verbose
+        env:
+          NODE_ENV: test

@@ -1,10 +1,11 @@
-import { IsString, IsOptional, IsEnum, IsInt, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DocumentStatus } from '@/domains/shared/enums';
 
 export class UpsertIndexDto {
   @ApiProperty({ description: 'Caminho do arquivo de origem' })
   @IsString()
+  @IsNotEmpty()
   sourceFile!: string;
 
   @ApiPropertyOptional({ enum: DocumentStatus, description: 'Status do documento' })

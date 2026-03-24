@@ -80,14 +80,14 @@ src/
   config/                    # ConfigModule + Zod env validation
   database/                  # MongooseModule connection factory
   health/                    # HealthModule (Terminus + MongoDB ping)
-  knowledge/                 # KnowledgeModule (CRUD + text search)
-    schemas/                 # Mongoose schema: knowledge_documents
-  llm/                       # LLM Module (Groq client + cache + query logs)
-    schemas/                 # Mongoose schemas: llm_cache, query_logs
-  planner/                   # PlannerModule (document index tracking)
-    schemas/                 # Mongoose schema: document_index
-  tabular/                   # TabularModule (placeholder — DuckDB SQL)
-python-cli/                  # Legacy Python CLI (81 testes, código original)
+  domains/
+    knowledge/               # KnowledgeModule (chunking + embedding + text/vector search)
+    llm/                     # LLM Module (Groq client + cache + query logs)
+    planner/                 # PlannerModule (document index tracking)
+    tabular/                 # TabularModule (SQL validation)
+    shared/                  # Enums compartilhados (DocumentStatus, FileType)
+  shared/                    # Filters, Interceptors
+tests/                       # Testes Python (pytest, 81 testes)
 mongo-init-scripts/          # Schema validation + índices (auto-executed)
 test/                        # E2E tests (Jest + Supertest)
 data/
@@ -104,7 +104,7 @@ _archive/                    # Backups e scripts históricos
 
 | Collection | Descrição | Índices |
 |---|---|---|
-| `knowledge_documents` | Documentos indexados para RAG | sourceFile+createdAt, content text, fileType+isActive |
+| `knowledge_documents` | Documentos indexados para RAG | sourceFile+chunkIndex unique, content text, embedding vectorSearch, fileType+isActive |
 | `query_logs` | Log de queries e respostas LLM | createdAt, model+createdAt |
 | `llm_cache` | Cache de respostas (TTL 24h) | queryHash unique, createdAt TTL |
 | `document_index` | Tracking de documentos processados | sourceFile unique, status+lastIndexedAt |
@@ -127,6 +127,33 @@ MONGODB_DB=atlas_local_db
 
 ---
 
+## Contrato de Embedding
+
+| Propriedade | Valor | Onde está definido |
+|---|---|---|
+| Modelo | `text-embedding-3-small` | `EMBEDDING_MODEL` no `.env` |
+| Dimensão | 1536 | `EMBEDDING_DIMENSIONS` no `.env` + `numDimensions` em `01-init-db.js` |
+| Similaridade | cosine | `01-init-db.js` (vectorSearch index) |
+| Índice Atlas | `knowledge_documents_embedding_vs_idx` | `01-init-db.js` |
+
+> **IMPORTANTE**: se a dimensão do embedding mudar, o índice vetorial em `mongo-init-scripts/01-init-db.js` **deve ser recriado**.
+
+---
+
+## Contrato de Chunking
+
+| Parâmetro | Valor | Estratégia |
+|---|---|---|
+| `maxChars` | 1000 | Tamanho máximo por chunk |
+| `overlap` | 120 | Sobreposição entre chunks adjacentes |
+| `.md` | Segmentação por headings | Cada seção `#` vira segmento |
+| `.json` | Flatten + window | Chaves achatadas, depois janeladas |
+| `.txt` / `.csv` | Parágrafos | Separação por `\n\n` |
+
+O chunking é aplicado automaticamente no `POST /knowledge` quando `chunkIndex` não é fornecido.
+
+---
+
 ## Testes
 
 ```bash
@@ -142,15 +169,15 @@ npm run test:cov
 
 ---
 
-## Legacy Python CLI
+## Python CLI
 
-O código Python original está preservado em `python-cli/` com 81 testes. Para executar:
+O código Python coexiste em `src/` junto com o TypeScript. Os testes estão em `tests/`:
 
 ```bash
-cd python-cli
 python -m venv .venv && .venv\Scripts\activate
-pip install -r ../requirements.txt
+pip install -r requirements.txt
 python -m src.main --help
+python -m pytest tests/ -v
 ```
 
 ---
