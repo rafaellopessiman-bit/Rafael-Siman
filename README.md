@@ -1,2 +1,4 @@
 # Rafael-Siman
-alterações
+
+**Autor:** Rafael Siman  
+**E-mail:** rafaellopessiman@gmail.com
