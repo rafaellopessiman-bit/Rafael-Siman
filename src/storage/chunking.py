@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from src.knowledge.corpus_filter import deduplicate_chunks, filter_chunks
 
 DEFAULT_MAX_CHARS = 1000
 DEFAULT_OVERLAP = 120
@@ -40,6 +41,10 @@ def chunk_text(
 
     if not chunks:
         chunks = _window_chunks(text.strip(), max_chars=max_chars, overlap=overlap)
+
+    # Apply corpus quality filters: drop low-quality and deduplicate
+    chunks, _ = filter_chunks(chunks)
+    chunks, _ = deduplicate_chunks(chunks)
 
     return chunks
 

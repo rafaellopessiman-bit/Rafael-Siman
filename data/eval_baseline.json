@@ -1,0 +1,95 @@
+{
+  "timestamp": "2026-03-25T15:19:29.812882+00:00",
+  "db_path": "data/ebooks_catalog.db",
+  "top_k": 5,
+  "mrr": 0.9643,
+  "mean_precision_at_k": 0.6714,
+  "mean_ndcg_at_k": 0.9733,
+  "top1_accuracy": 0.9286,
+  "per_query": {
+    "mongodb indexing transactions": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 0.4,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    },
+    "domain driven design ddd architecture": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 0.4,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    },
+    "debugging error handling performance cpp": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 0.4,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    },
+    "python django web framework": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 0.6,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    },
+    "machine learning algorithms embeddings neural networks": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    },
+    "sql hibernate postgresql database queries": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    },
+    "typescript javascript nodejs": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 0.4,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    },
+    "algorithms data structures sorting": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 0.6,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    },
+    "linux command line shell scripting": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 0.6,
+      "ndcg_at_k": 0.9469,
+      "top_hit_correct": true
+    },
+    "html5 web development latex documents": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 0.8,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    },
+    "chatgpt prompts ai language models": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    },
+    "bitcoin cryptocurrency blockchain investing": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 1.0,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    },
+    "hacking security kali linux oauth": {
+      "reciprocal_rank": 0.5,
+      "precision_at_k": 0.6,
+      "ndcg_at_k": 0.6797,
+      "top_hit_correct": false
+    },
+    "data science python analysis visualization": {
+      "reciprocal_rank": 1.0,
+      "precision_at_k": 0.6,
+      "ndcg_at_k": 1.0,
+      "top_hit_correct": true
+    }
+  }
+}

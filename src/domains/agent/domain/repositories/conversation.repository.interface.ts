@@ -23,6 +23,8 @@ export interface IConversationRepository {
   create(data: CreateConversationData): Promise<ConversationDocument>;
   findById(id: string): Promise<ConversationDocument | null>;
   findAll(onlyActive?: boolean): Promise<ConversationDocument[]>;
+  findPaginated(skip: number, limit: number, onlyActive?: boolean): Promise<ConversationDocument[]>;
+  countAll(onlyActive?: boolean): Promise<number>;
   appendMessage(
     conversationId: string,
     message: AppendMessageData,

@@ -13,6 +13,8 @@ import { AskStreamUseCase } from './application/use-cases/ask-stream.use-case';
 import { GroqClientService } from './infrastructure/groq/groq-client.service';
 import { LlmController } from './infrastructure/http/llm.controller';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
+import { CacheModule } from '../../shared/cache/cache.module';
+import { TelemetryModule } from '../../shared/telemetry/telemetry.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { KnowledgeModule } from '../knowledge/knowledge.module';
       { name: QueryLog.name, schema: QueryLogSchema },
     ]),
     KnowledgeModule,
+    CacheModule,
+    TelemetryModule,
   ],
   controllers: [LlmController],
   providers: [

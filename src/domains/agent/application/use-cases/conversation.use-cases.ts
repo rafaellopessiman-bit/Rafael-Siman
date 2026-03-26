@@ -4,6 +4,11 @@ import {
   IConversationRepository,
 } from '../../domain/repositories/conversation.repository.interface';
 import { CreateConversationDto, ConversationSummary } from '../dtos/agent.dto';
+import {
+  PaginationQueryDto,
+  PaginatedResponseDto,
+  paginate,
+} from '../../../../shared/dto/pagination.dto';
 
 @Injectable()
 export class CreateConversationUseCase {
@@ -27,9 +32,15 @@ export class ListConversationsUseCase {
     private readonly conversationRepo: IConversationRepository,
   ) {}
 
-  async execute(): Promise<ConversationSummary[]> {
-    const docs = await this.conversationRepo.findAll(true);
-    return docs.map((d) => ({
+  async execute(
+    query?: PaginationQueryDto,
+  ): Promise<PaginatedResponseDto<ConversationSummary>> {
+    const q = query ?? new PaginationQueryDto();
+    const [docs, total] = await Promise.all([
+      this.conversationRepo.findPaginated(q.skip, q.take, true),
+      this.conversationRepo.countAll(true),
+    ]);
+    const items = docs.map((d) => ({
       id: d._id.toString(),
       title: d.title,
       messageCount: d.messageCount,
@@ -38,6 +49,7 @@ export class ListConversationsUseCase {
       createdAt: d.get('createdAt'),
       updatedAt: d.get('updatedAt'),
     }));
+    return paginate(items, total, q);
   }
 }
 

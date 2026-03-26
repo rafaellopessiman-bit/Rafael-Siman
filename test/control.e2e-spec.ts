@@ -67,6 +67,8 @@ class InMemoryConversationRepository {
   async create(data: Record<string, unknown>) { return { _id: 'conv-1', ...data, messages: [], totalTokens: 0, messageCount: 0, isActive: true, schemaVersion: 1, createdAt: new Date(), updatedAt: new Date() }; }
   async findById() { return null; }
   async findAll() { return []; }
+  async findPaginated() { return []; }
+  async countAll() { return 0; }
   async appendMessage() { return null; }
   async addTokens() {}
   async archive() {}
@@ -86,6 +88,8 @@ class InMemoryAgentRunRepository {
   async findById() { return null; }
   async findByConversation() { return []; }
   async findRecent() { return []; }
+  async countRecent() { return 0; }
+  async countByConversation() { return 0; }
 }
 
 class InMemoryAgentStepRepository {
@@ -159,6 +163,9 @@ class InMemoryEvalRunRepository {
     this.runs[idx] = { ...this.runs[idx], ...data };
     return this.runs[idx];
   }
+
+  async countRecent() { return this.runs.length; }
+  async countByDataset(datasetId: string) { return this.runs.filter((r) => r['datasetId'] === datasetId).length; }
 
   seed(run: Record<string, unknown>) {
     this.runs.push(run);

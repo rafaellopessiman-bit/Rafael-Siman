@@ -54,7 +54,7 @@ python -m src.main ask "O que há nos documentos?"
 
 ## Estrutura de Pastas Operacionais
 
-```
+```text
 atlas_local/
 ├── scripts/windows/       ← Scripts PowerShell de operação
 │   ├── bootstrap.ps1      ← Valida ambiente
@@ -108,11 +108,11 @@ Acesse via **Ctrl+Shift+P** → `Tasks: Run Task`:
 
 ## Variáveis de Ambiente Essenciais
 
-| Variável         | Obrigatória | Descrição                    |
-|------------------|-------------|------------------------------|
-| GROQ_API_KEY     | Sim         | Chave da API Groq            |
-| GROQ_MODEL       | Não         | Modelo LLM (default: llama-3.3-70b-versatile) |
-| MONGODB_URI      | Não         | URI do MongoDB (tem default) |
-| MONGODB_DB       | Não         | Nome do banco (default: atlas_local_db) |
-| DATABASE_PATH    | Não         | Caminho do SQLite local      |
-| DOCUMENTS_PATH   | Não         | Pasta de documentos          |
+| Variável | Obrigatória | Descrição |
+| --- | --- | --- |
+| GROQ_API_KEY | Sim | Chave da API Groq |
+| GROQ_MODEL | Não | Modelo LLM (default: llama-3.3-70b-versatile) |
+| MONGODB_URI | Não | URI do MongoDB (tem default) |
+| MONGODB_DB | Não | Nome do banco (default: atlas_local_db) |
+| DATABASE_PATH | Não | Caminho do SQLite local |
+| DOCUMENTS_PATH | Não | Pasta de documentos |

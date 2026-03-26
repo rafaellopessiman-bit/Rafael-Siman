@@ -1,9 +1,10 @@
 ---
-name: MongoDB Atlas Schema
+name: mongodb-atlas-schema
 description: Templates e melhores práticas de schema design para MongoDB Atlas Local + @nestjs/mongoose
 ---
 
 **Regras de Schema Design (sempre siga)**
+
 1. Identifique entidades e relacionamentos.
 2. Entenda o workload completo.
 3. Escolha o padrão correto: Embedding | Referencing | Hybrid | Outbox | Versioning.
@@ -11,6 +12,7 @@ description: Templates e melhores práticas de schema design para MongoDB Atlas 
 5. Use versionamento (`versionKey: 'version'`).
 
 **Template pronto (Hybrid – mais usado)**
+
 ```ts
 @Schema({ timestamps: true, versionKey: 'version' })
 export class Post {
@@ -29,11 +31,13 @@ export class Post {
 ```
 
 **Índices recomendados**
+
 - Compound: `{ email: 1, createdAt: -1 }`
 - Text: para Atlas Search
 - Vector: quando usar embeddings
 
 **Comando útil no terminal**
+
 ```bash
 mongosh "mongodb://admin:password@localhost:27017"
 ```

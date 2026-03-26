@@ -1,0 +1,89 @@
+{
+  "description": "Benchmark queries for retrieval quality evaluation. Each query has expected_files (substring match against file_path). Only queries with known coverage in the ebooks catalog.",
+  "queries": [
+    {
+      "query": "mongodb indexing transactions",
+      "expected_files": ["mongodb notes for professionals", "mongodbnotesforprofessionals"],
+      "description": "Deve retornar o livro de MongoDB. Validado manualmente com score ~39.",
+      "min_score": 10.0
+    },
+    {
+      "query": "domain driven design ddd architecture",
+      "expected_files": ["domain-driven design in php", "domain-driven_design_in_php", "design_patterns"],
+      "description": "Deve retornar DDD in PHP ou Design Patterns.",
+      "min_score": 5.0
+    },
+    {
+      "query": "debugging error handling performance cpp",
+      "expected_files": ["c++ programming cookbook", "c__ programming cookbook", "100 go mistakes"],
+      "description": "Deve retornar livros com capitulos de debugging/performance.",
+      "min_score": 3.0
+    },
+    {
+      "query": "python django web framework",
+      "expected_files": ["django", "python"],
+      "description": "Deve retornar livros de Django ou Python web.",
+      "min_score": 5.0
+    },
+    {
+      "query": "machine learning algorithms embeddings neural networks",
+      "expected_files": ["algorithm", "python_for_data_science", "python for data science"],
+      "description": "Deve retornar livros de algoritmos com capitulos de ML/embeddings.",
+      "min_score": 3.0
+    },
+    {
+      "query": "sql hibernate postgresql database queries",
+      "expected_files": ["hibernate", "postgresql", "entity framework"],
+      "description": "Deve retornar livros sobre ORM/SQL/bancos.",
+      "min_score": 3.0
+    },
+    {
+      "query": "typescript javascript nodejs",
+      "expected_files": ["typescript", "javascript"],
+      "description": "Deve retornar livros de TypeScript/JavaScript.",
+      "min_score": 3.0
+    },
+    {
+      "query": "algorithms data structures sorting",
+      "expected_files": ["algorithm", "art of computer programming"],
+      "description": "Deve retornar livros de algoritmos e estruturas de dados.",
+      "min_score": 3.0
+    },
+    {
+      "query": "linux command line shell scripting",
+      "expected_files": ["linux", "perl"],
+      "description": "Deve retornar livros de Linux/Shell/Perl.",
+      "min_score": 3.0
+    },
+    {
+      "query": "html5 web development latex documents",
+      "expected_files": ["html5", "latex"],
+      "description": "Deve retornar livros de HTML5 ou LaTeX.",
+      "min_score": 3.0
+    },
+    {
+      "query": "chatgpt prompts ai language models",
+      "expected_files": ["chatgpt", "art of asking"],
+      "description": "Deve retornar livros sobre ChatGPT/prompts.",
+      "min_score": 3.0
+    },
+    {
+      "query": "bitcoin cryptocurrency blockchain investing",
+      "expected_files": ["bitcoin", "blockchain", "cryptocurrency"],
+      "description": "Deve retornar livros sobre Bitcoin/crypto.",
+      "min_score": 3.0
+    },
+    {
+      "query": "hacking security kali linux oauth",
+      "expected_files": ["hacking", "kali", "oauth"],
+      "description": "Deve retornar livros de seguranca/hacking.",
+      "min_score": 3.0
+    },
+    {
+      "query": "data science python analysis visualization",
+      "expected_files": ["python_for_data_science", "python for data science", "1000 examples programming in python"],
+      "description": "Deve retornar livros de Python para data science.",
+      "min_score": 3.0
+    }
+  ]
+}

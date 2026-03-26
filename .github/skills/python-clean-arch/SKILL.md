@@ -16,7 +16,7 @@ esperados em cada módulo.
 
 ## Estrutura de Pastas (referência canônica)
 
-```
+```text
 src/
 ├── config.py               # get_settings() — leitura centralizada de .env
 ├── exceptions.py           # Exceções customizadas (não quebre a interface pública)
@@ -51,7 +51,7 @@ src/
 
 ## Regra de Dependência (Dependency Rule)
 
-```
+```text
 main.py  →  handlers (main_cli_*.py)
               ↓
          knowledge / planner / tabular

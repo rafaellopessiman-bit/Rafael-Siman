@@ -1,11 +1,11 @@
 ---
-name: NestJS Clean Architecture
+name: nestjs-clean-arch
 description: Estrutura feature-based + Clean Architecture para NestJS v11 + Atlas Local
 ---
 
 **Estrutura padrão recomendada (Feature-based Clean Architecture)**
 
-```
+```text
 src/
 ├── domains/                  # Uma pasta por feature (user, post, etc.)
 │   ├── user/
@@ -21,6 +21,7 @@ src/
 ```
 
 **Regras obrigatórias**
+
 - Um module por feature (`user.module.ts`).
 - Repository Pattern customizado.
 - CQRS leve com `@nestjs/cqrs` apenas quando necessário.
@@ -28,6 +29,7 @@ src/
 - Sempre use `MongooseModule.forFeature()` no module.
 
 **Exemplo de Module completo**
+
 ```ts
 @Module({
   imports: [

@@ -41,6 +41,21 @@ export class MongooseConversationRepository implements IConversationRepository {
       .select('-messages');
   }
 
+  async findPaginated(skip: number, limit: number, onlyActive = true): Promise<ConversationDocument[]> {
+    const filter = onlyActive ? { isActive: true } : {};
+    return this.model
+      .find(filter)
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select('-messages');
+  }
+
+  async countAll(onlyActive = true): Promise<number> {
+    const filter = onlyActive ? { isActive: true } : {};
+    return this.model.countDocuments(filter);
+  }
+
   async appendMessage(
     conversationId: string,
     message: AppendMessageData,

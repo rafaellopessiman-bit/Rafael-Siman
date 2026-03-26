@@ -57,6 +57,7 @@ collection.create_index("createdAt", expireAfterSeconds=86400, name="cache_creat
 ```
 
 **Regras:**
+
 - Todo índice deve ter `name` explícito.
 - Nunca crie índice em campo de cardinalidade baixa (ex.: `isActive` booleano) de forma isolada.
 - Revise com `explain()` antes de declarar produção.

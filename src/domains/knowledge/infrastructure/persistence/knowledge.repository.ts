@@ -79,4 +79,20 @@ export class MongooseKnowledgeRepository implements IKnowledgeRepository {
       .exec();
     return result.deletedCount;
   }
+
+  async findPaginated(
+    skip: number,
+    limit: number,
+  ): Promise<KnowledgeDocumentDocument[]> {
+    return this.knowledgeModel
+      .find({ isActive: true })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .exec();
+  }
+
+  async countAll(): Promise<number> {
+    return this.knowledgeModel.countDocuments({ isActive: true }).exec();
+  }
 }

@@ -1,5 +1,4 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
-import { createHash } from 'crypto';
 import {
   LLM_CACHE_REPOSITORY,
   ILlmCacheRepository,
@@ -18,6 +17,8 @@ import {
 } from '../../../knowledge/domain/services/embedding.service';
 import { GroqClientService } from '../../infrastructure/groq/groq-client.service';
 import { AskQueryDto, AskQueryResult } from '../dtos/ask-query.dto';
+import { AskCacheService } from '../../../../shared/cache/ask-cache.service';
+import { MetricsService } from '../../../../shared/telemetry/metrics.service';
 import { ConfigService } from '@nestjs/config';
 
 const SYSTEM_PROMPT = `Você é um assistente especializado em análise de documentos.
@@ -51,6 +52,8 @@ export class AskDocumentsUseCase {
     @Inject(EMBEDDING_SERVICE)
     private readonly embeddingService: IEmbeddingService,
     private readonly groqClient: GroqClientService,
+    private readonly askCacheService: AskCacheService,
+    private readonly metricsService: MetricsService,
     private readonly configService: ConfigService,
   ) {
     this.vectorSearchEnabled =
@@ -59,12 +62,13 @@ export class AskDocumentsUseCase {
 
   async execute(dto: AskQueryDto): Promise<AskQueryResult> {
     const topK = dto.topK ?? 5;
-    const queryHash = this.hashQuery(dto.query, topK);
+    const queryHash = this.askCacheService.buildKey(dto.query, topK);
     const startMs = Date.now();
 
     // 1. Cache hit
     const cached = await this.cacheRepository.getCached(queryHash);
     if (cached) {
+      this.metricsService.cacheHits.inc({ result: 'hit' });
       this.logger.log(`Cache hit para query hash ${queryHash}`);
       return {
         answer: cached,
@@ -109,6 +113,7 @@ export class AskDocumentsUseCase {
     const latencyMs = Date.now() - startMs;
 
     // 4. Persiste no cache
+    this.metricsService.cacheHits.inc({ result: 'miss' });
     await this.cacheRepository.setCache(queryHash, result.content, result.model);
 
     // 5. Registra no log
@@ -130,8 +135,4 @@ export class AskDocumentsUseCase {
     };
   }
 
-  private hashQuery(query: string, topK: number): string {
-    const input = `${query.toLowerCase().trim()}|topK=${topK}`;
-    return createHash('sha256').update(input).digest('hex').slice(0, 16);
-  }
 }

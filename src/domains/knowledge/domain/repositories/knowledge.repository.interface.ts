@@ -14,4 +14,6 @@ export interface IKnowledgeRepository {
   searchText(query: string, limit: number): Promise<KnowledgeDocumentDocument[]>;
   vectorSearch(embedding: number[], limit: number): Promise<KnowledgeDocumentDocument[]>;
   deleteBySourceFile(sourceFile: string): Promise<number>;
+  findPaginated(skip: number, limit: number): Promise<KnowledgeDocumentDocument[]>;
+  countAll(): Promise<number>;
 }

@@ -10,6 +10,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import {
   CreateConversationDto,
   SendMessageDto,
@@ -35,9 +36,11 @@ import { TracingService } from '../../domain/services/tracing.service';
 import { GuardrailPipelineService } from '../../domain/services/guardrail-pipeline.service';
 import { AgentRegistryService } from '../../domain/services/agent-registry.service';
 import { AgentOrchestratorService } from '../../domain/services/agent-orchestrator.service';
+import { PaginationQueryDto, paginate } from '../../../../shared/dto/pagination.dto';
 
 @ApiTags('agent')
 @Controller('agent')
+@SkipThrottle({ ask: true, act: true, extract: true })
 export class AgentController {
   constructor(
     private readonly sendMessage: SendAgentMessageUseCase,
@@ -66,9 +69,9 @@ export class AgentController {
   }
 
   @Get('conversations')
-  @ApiOperation({ summary: 'Lista conversas ativas' })
-  list() {
-    return this.listConversations.execute();
+  @ApiOperation({ summary: 'Lista conversas ativas (paginado)' })
+  list(@Query() query: PaginationQueryDto) {
+    return this.listConversations.execute(query);
   }
 
   @Get('conversations/:id')
@@ -147,11 +150,13 @@ export class AgentController {
   // ── Tracing ──────────────────────────────────────────────────────────
 
   @Get('runs')
-  @ApiOperation({ summary: 'Lista execuções recentes do agente' })
-  listRuns(@Query('limit') limit?: string) {
-    return this.tracingService.getRecentRuns(
-      limit ? Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100) : 20,
-    );
+  @ApiOperation({ summary: 'Lista execuções recentes do agente (paginado)' })
+  async listRuns(@Query() query: PaginationQueryDto) {
+    const [data, total] = await Promise.all([
+      this.tracingService.getRecentRuns(query.take, query.skip),
+      this.tracingService.countRecentRuns(),
+    ]);
+    return paginate(data, total, query);
   }
 
   @Get('runs/:runId')
@@ -171,15 +176,16 @@ export class AgentController {
   }
 
   @Get('conversations/:id/runs')
-  @ApiOperation({ summary: 'Lista execuções de uma conversa' })
-  getConversationRuns(
+  @ApiOperation({ summary: 'Lista execuções de uma conversa (paginado)' })
+  async getConversationRuns(
     @Param('id') conversationId: string,
-    @Query('limit') limit?: string,
+    @Query() query: PaginationQueryDto,
   ) {
-    return this.tracingService.getRunsByConversation(
-      conversationId,
-      limit ? Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100) : 20,
-    );
+    const [data, total] = await Promise.all([
+      this.tracingService.getRunsByConversation(conversationId, query.take, query.skip),
+      this.tracingService.countRunsByConversation(conversationId),
+    ]);
+    return paginate(data, total, query);
   }
 
   // ── Guardrails ───────────────────────────────────────────────────────

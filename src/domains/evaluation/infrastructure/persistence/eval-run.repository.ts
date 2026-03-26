@@ -32,24 +32,34 @@ export class MongooseEvalRunRepository implements IEvalRunRepository {
     return doc ? this.toInterface(doc) : null;
   }
 
-  async findByDataset(datasetId: string, limit = 20): Promise<IEvalRun[]> {
+  async findByDataset(datasetId: string, limit = 20, skip = 0): Promise<IEvalRun[]> {
     const docs = await this.model
       .find({ datasetId })
       .sort({ startedAt: -1 })
+      .skip(skip)
       .limit(limit)
       .lean()
       .exec();
     return docs.map((d) => this.toInterface(d));
   }
 
-  async findRecent(limit = 10): Promise<IEvalRun[]> {
+  async findRecent(limit = 10, skip = 0): Promise<IEvalRun[]> {
     const docs = await this.model
       .find()
       .sort({ startedAt: -1 })
+      .skip(skip)
       .limit(limit)
       .lean()
       .exec();
     return docs.map((d) => this.toInterface(d));
+  }
+
+  async countRecent(): Promise<number> {
+    return this.model.countDocuments();
+  }
+
+  async countByDataset(datasetId: string): Promise<number> {
+    return this.model.countDocuments({ datasetId });
   }
 
   async update(id: string, data: Partial<IEvalRun>): Promise<IEvalRun | null> {

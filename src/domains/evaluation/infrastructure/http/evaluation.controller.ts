@@ -10,16 +10,19 @@ import {
   HttpStatus,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../../../../shared/guards/public.decorator';
 import { RunEvalDto } from '../../application/dto/run-eval.dto';
 import { RunEvalUseCase } from '../../application/use-cases/run-eval.use-case';
 import { IEvalRunRepository, EVAL_RUN_REPOSITORY } from '../../domain/repositories/eval-run.repository.interface';
 import { IEvalRun } from '../../domain/interfaces/eval-run.interface';
+import { PaginationQueryDto, PaginatedResponseDto, paginate } from '../../../../shared/dto/pagination.dto';
 
 @ApiTags('evaluation')
 @Controller('eval')
 @Public()
+@SkipThrottle({ ask: true, act: true, extract: true })
 export class EvaluationController {
   constructor(
     private readonly runEvalUseCase: RunEvalUseCase,
@@ -39,11 +42,13 @@ export class EvaluationController {
   }
 
   @Get('runs')
-  @ApiOperation({ summary: 'Lista os eval runs mais recentes' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Máximo de resultados (default: 10)' })
-  async findRecent(@Query('limit') limit?: string): Promise<IEvalRun[]> {
-    const parsedLimit = limit ? parseInt(limit, 10) : 10;
-    return this.runRepo.findRecent(parsedLimit);
+  @ApiOperation({ summary: 'Lista os eval runs mais recentes (paginado)' })
+  async findRecent(@Query() query: PaginationQueryDto): Promise<PaginatedResponseDto<IEvalRun>> {
+    const [data, total] = await Promise.all([
+      this.runRepo.findRecent(query.take, query.skip),
+      this.runRepo.countRecent(),
+    ]);
+    return paginate(data, total, query);
   }
 
   @Get('runs/:id')
@@ -59,13 +64,15 @@ export class EvaluationController {
   }
 
   @Get('runs/dataset/:datasetId')
-  @ApiOperation({ summary: 'Lista runs de um dataset específico' })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'Lista runs de um dataset específico (paginado)' })
   async findByDataset(
     @Param('datasetId') datasetId: string,
-    @Query('limit') limit?: string,
-  ): Promise<IEvalRun[]> {
-    const parsedLimit = limit ? parseInt(limit, 10) : 20;
-    return this.runRepo.findByDataset(datasetId, parsedLimit);
+    @Query() query: PaginationQueryDto,
+  ): Promise<PaginatedResponseDto<IEvalRun>> {
+    const [data, total] = await Promise.all([
+      this.runRepo.findByDataset(datasetId, query.take, query.skip),
+      this.runRepo.countByDataset(datasetId),
+    ]);
+    return paginate(data, total, query);
   }
 }

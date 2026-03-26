@@ -6,12 +6,11 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Iterable
 
+from src.knowledge.loader import load_documents_with_report
 from src.storage.chunking import chunk_text
-from src.storage.document_store import DocumentStore
 from src.storage.path_utils import normalize_path
 
-
-SUPPORTED_EXTENSIONS = {".txt", ".md", ".json", ".csv"}
+SUPPORTED_EXTENSIONS = {".txt", ".md", ".json", ".csv", ".pdf", ".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".docx", ".xlsx"}
 TOKEN_PATTERN = re.compile(r"\w+", flags=re.UNICODE)
 DEFAULT_TOP_K = 3
 
@@ -187,6 +186,8 @@ def _load_chunks_from_sqlite(
     db_path: str | Path,
     base_dir: str | Path | None = None,
 ) -> list[dict]:
+    from src.storage.document_store import DocumentStore
+
     store = DocumentStore(db_path=db_path, base_dir=base_dir)
     if store.count_chunks() == 0:
         return []
@@ -199,8 +200,12 @@ def _load_chunks_from_disk(
 ) -> list[dict]:
     chunks: list[dict] = []
 
-    for file_path in _iter_supported_files(input_dir):
-        content = _read_text(file_path)
+    documents, _errors = load_documents_with_report(input_dir)
+
+    for document in documents:
+        file_path = Path(document["file_path"])
+        content = str(document["content"])
+        metadata = document.get("metadata") if isinstance(document.get("metadata"), dict) else {}
         normalized_path = normalize_path(file_path, base_dir=base_dir)
         for index, chunk in enumerate(chunk_text(file_path=file_path, text=content)):
             chunks.append(
@@ -208,6 +213,7 @@ def _load_chunks_from_disk(
                     "file_path": normalized_path,
                     "chunk_index": index,
                     "text": chunk,
+                    "metadata": metadata,
                 }
             )
 
@@ -244,6 +250,7 @@ def _group_documents_from_chunks(
                 "preview": preview_source.replace("\n", " ").strip()[:220],
                 "score": float((doc_scores or {}).get(file_path, 0.0)),
                 "matched_chunks": matched_chunks,
+                "metadata": items[0].get("metadata", {}),
                 "retrieval_source": retrieval_source,
             }
         )
@@ -262,13 +269,6 @@ def _iter_supported_files(input_dir: str | Path) -> list[Path]:
         for path in root.rglob("*")
         if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS
     )
-
-
-def _read_text(file_path: Path) -> str:
-    try:
-        return file_path.read_text(encoding="utf-8")
-    except UnicodeDecodeError:
-        return file_path.read_text(encoding="utf-8", errors="ignore")
 
 
 __all__ = [

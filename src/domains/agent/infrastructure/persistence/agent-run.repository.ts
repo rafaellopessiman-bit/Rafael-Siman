@@ -59,14 +59,24 @@ export class MongooseAgentRunRepository implements IAgentRunRepository {
   async findByConversation(
     conversationId: string,
     limit = 20,
+    skip = 0,
   ): Promise<AgentRunDocument[]> {
     return this.model
       .find({ conversationId })
       .sort({ createdAt: -1 })
+      .skip(skip)
       .limit(limit);
   }
 
-  async findRecent(limit = 20): Promise<AgentRunDocument[]> {
-    return this.model.find().sort({ createdAt: -1 }).limit(limit);
+  async findRecent(limit = 20, skip = 0): Promise<AgentRunDocument[]> {
+    return this.model.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+  }
+
+  async countRecent(): Promise<number> {
+    return this.model.countDocuments();
+  }
+
+  async countByConversation(conversationId: string): Promise<number> {
+    return this.model.countDocuments({ conversationId });
   }
 }

@@ -1,5 +1,12 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { BullModule } from '@nestjs/bullmq';
+import { KNOWLEDGE_INDEX_QUEUE } from '../../shared/queue/queue.constants';
+import { TelemetryModule } from '../../shared/telemetry/telemetry.module';
+import { DocumentIndexListener } from './infrastructure/listeners/document-index.listener';
+import { KnowledgeIndexProcessor } from './infrastructure/queue/knowledge-index.processor';
+import { KnowledgeJobsController } from './infrastructure/http/knowledge-jobs.controller';
+import { EnqueueKnowledgeIndexUseCase } from './application/use-cases/enqueue-knowledge-index.use-case';
 import {
   KnowledgeDocument,
   KnowledgeDocumentSchema,
@@ -17,13 +24,24 @@ import {
   EmbeddingService,
 } from './domain/services/embedding.service';
 
+const useBullMQ = process.env.INDEX_ASYNC_DRIVER === 'bullmq';
+
+const bullImports = useBullMQ
+  ? [BullModule.registerQueue({ name: KNOWLEDGE_INDEX_QUEUE })]
+  : [];
+
+const bullControllers = useBullMQ ? [KnowledgeJobsController] : [];
+const bullProviders = useBullMQ ? [KnowledgeIndexProcessor] : [];
+
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: KnowledgeDocument.name, schema: KnowledgeDocumentSchema },
     ]),
+    TelemetryModule,
+    ...bullImports,
   ],
-  controllers: [KnowledgeController],
+  controllers: [KnowledgeController, ...bullControllers],
   providers: [
     {
       provide: KNOWLEDGE_REPOSITORY,
@@ -38,6 +56,9 @@ import {
     SearchDocumentsUseCase,
     DeleteDocumentUseCase,
     FindBySourceFileUseCase,
+    EnqueueKnowledgeIndexUseCase,
+    DocumentIndexListener,
+    ...bullProviders,
   ],
   exports: [KNOWLEDGE_REPOSITORY, EMBEDDING_SERVICE, ChunkingService],
 })

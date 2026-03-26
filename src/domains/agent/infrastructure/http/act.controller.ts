@@ -1,10 +1,13 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { ActDto, ActResponse } from '../../application/dtos/act.dto';
 import { ExecuteGovernedActionUseCase } from '../../application/use-cases/execute-governed-action.use-case';
 
 @ApiTags('act')
 @Controller('act')
+@SkipThrottle({ ask: true, extract: true })
+@Throttle({ act: {} })
 export class ActController {
   constructor(
     private readonly executeGovernedAction: ExecuteGovernedActionUseCase,

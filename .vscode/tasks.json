@@ -47,6 +47,51 @@
       "problemMatcher": []
     },
     {
+      "label": "Atlas: Indexar Biblioteca Tecnica",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\windows\\index-ebooks-library.ps1"],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Atlas: Status Biblioteca Tecnica",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\windows\\show-ebooks-index-status.ps1"],
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Atlas: Parar Indexacao Biblioteca Tecnica",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\windows\\stop-ebooks-index.ps1"],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Atlas: Estatisticas Biblioteca Tecnica",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\windows\\show-ebooks-catalog-stats.ps1"],
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Atlas: Consultas Biblioteca Tecnica",
+      "type": "shell",
+      "command": "powershell",
+      "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\windows\\run-ebooks-queries.ps1"],
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
       "label": "Atlas: Backup MongoDB + SQLite",
       "type": "shell",
       "command": "powershell",
@@ -78,6 +123,93 @@
       "type": "shell",
       "command": "powershell",
       "args": ["-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}\\scripts\\windows\\collect-diagnostics.ps1"],
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Atlas: Schedule Operacional",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\windows\\run-schedule-operational.ps1"
+      ],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Atlas: Instalar Tasks Operacionais",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\windows\\install-operational-tasks.ps1"
+      ],
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Atlas: Health Check Operacional",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\windows\\health-check-operational.ps1"
+      ],
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Atlas: Watch Operacional",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\windows\\run-watch-operational.ps1"
+      ],
+      "group": "build",
+      "isBackground": true,
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Atlas: Type Check",
+      "type": "shell",
+      "command": "npx",
+      "args": ["tsc", "--noEmit"],
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "label": "Atlas: Multiagent - Preflight",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Atlas: Health Check"],
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Atlas: Multiagent - Gate Completo",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Atlas: Multiagent - Preflight",
+        "Python: Executar Testes",
+        "Atlas: Type Check",
+        "NestJS: Executar Testes e2e"
+      ],
       "group": "test",
       "presentation": { "reveal": "always", "panel": "shared" },
       "problemMatcher": []

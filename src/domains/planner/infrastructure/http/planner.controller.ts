@@ -1,5 +1,6 @@
 import { Controller, Get, Put, Body, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../../../../shared/guards/public.decorator';
 import { UpsertDocumentIndexUseCase } from '../../application/use-cases/upsert-document-index.use-case';
 import { UpsertIndexDto } from '../../application/dtos/upsert-index.dto';
@@ -8,6 +9,7 @@ import { DocumentStatus } from '@/domains/shared/enums';
 @ApiTags('planner')
 @Controller('planner')
 @Public()
+@SkipThrottle({ ask: true, act: true, extract: true })
 export class PlannerController {
   constructor(
     private readonly upsertDocumentIndexUseCase: UpsertDocumentIndexUseCase,

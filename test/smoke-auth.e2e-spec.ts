@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import { AppModule } from '../src/app.module';
+import { ConfigService } from '@nestjs/config';
 import { KNOWLEDGE_REPOSITORY } from '../src/domains/knowledge/domain/repositories/knowledge.repository.interface';
 import { EMBEDDING_SERVICE } from '../src/domains/knowledge/domain/services/embedding.service';
 import { LLM_CACHE_REPOSITORY } from '../src/domains/llm/domain/repositories/llm-cache.repository.interface';
@@ -17,6 +19,29 @@ import { EVAL_RUN_REPOSITORY } from '../src/domains/evaluation/domain/repositori
 import { TOOL_EXECUTION_REPOSITORY } from '../src/domains/control/domain/repositories/tool-execution.repository.interface';
 import { ALERT_RULE_REPOSITORY } from '../src/domains/control/domain/repositories/alert-rule.repository.interface';
 import { GroqClientService } from '../src/domains/llm/infrastructure/groq/groq-client.service';
+
+jest.setTimeout(60000);
+
+/**
+ * ConfigService stub que enforça API_KEYS = 'atlas-test-key'.
+ * Evita depender da leitura de process.env no construtor do ConfigModule
+ * (que ocorre sincronamente antes de qualquer beforeAll).
+ */
+class AuthApiConfigService {
+  get<T = unknown>(key: string, defaultValue?: T): T | undefined {
+    if (key === 'API_KEYS') return 'atlas-test-key' as unknown as T;
+    if (key === 'THROTTLE_TTL') return 60000 as unknown as T;
+    if (key === 'THROTTLE_LIMIT') return 30 as unknown as T;
+    const envVal = process.env[key as string];
+    return (envVal !== undefined ? envVal : defaultValue) as T | undefined;
+  }
+  getOrThrow<T = unknown>(key: string): T {
+    const v = this.get<T>(key);
+    if (v === undefined) throw new TypeError(`Configuration key "${key}" does not exist`);
+    return v as T;
+  }
+}
+
 import {
   applyTestAppConfig,
   ConditionalGroqClientService,
@@ -39,12 +64,8 @@ import {
 
 describe('API Key Guard (smoke e2e)', () => {
   let app: INestApplication;
-  const previousApiKeys = process.env.API_KEYS;
 
   beforeAll(async () => {
-    process.env.API_KEYS = 'atlas-test-key';
-    const { AppModule } = await import('../src/app.module');
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
@@ -80,22 +101,17 @@ describe('API Key Guard (smoke e2e)', () => {
       .useClass(InMemoryAlertRuleRepository)
       .overrideProvider(GroqClientService)
       .useClass(ConditionalGroqClientService)
+      .overrideProvider(ConfigService)
+      .useValue(new AuthApiConfigService())
       .compile();
 
     app = moduleFixture.createNestApplication();
     applyTestAppConfig(app);
     await app.init();
-  });
+  }, 60000);
 
   afterAll(async () => {
     await app.close();
-
-    if (previousApiKeys === undefined) {
-      delete process.env.API_KEYS;
-      return;
-    }
-
-    process.env.API_KEYS = previousApiKeys;
   });
 
   it('should reject protected ask route without API key', async () => {

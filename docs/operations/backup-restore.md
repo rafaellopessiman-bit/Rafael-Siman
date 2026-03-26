@@ -2,11 +2,11 @@
 
 ## Estratégia
 
-| Componente       | O que é salvo                           | Onde                           |
-|------------------|-----------------------------------------|--------------------------------|
-| MongoDB          | Todas as collections via `mongodump`    | `data\backup\mongo_<ts>\`     |
-| SQLite           | Arquivo `atlas_local.db` completo       | `data\backup\atlas_local_<ts>.db` |
-| Índice local     | Pasta `data\indice\`                    | `data\backup\indice_<ts>\`    |
+| Componente | O que é salvo | Onde |
+| --- | --- | --- |
+| MongoDB | Todas as collections via `mongodump` | `data\backup\mongo_<ts>\` |
+| SQLite | Arquivo `atlas_local.db` completo | `data\backup\atlas_local_<ts>.db` |
+| Índice local | Pasta `data\indice\` | `data\backup\indice_<ts>\` |
 
 ## Fazer Backup
 
@@ -15,6 +15,7 @@
 ```
 
 O script:
+
 1. Executa `mongodump` dentro do container MongoDB
 2. Copia o dump para `data\backup\mongo_<timestamp>\`
 3. Copia `data\atlas_local.db` com timestamp
@@ -32,6 +33,7 @@ O script:
 ```
 
 O script:
+
 1. Lista backups com tamanho
 2. Pede confirmação antes de restaurar
 3. Copia os dados para o container
@@ -54,6 +56,7 @@ Copy-Item data\backup\indice_20260324_120000\* data\indice\ -Recurse -Force
 ## Política de Retenção
 
 Recomendado para uso individual:
+
 - Manter os **3 últimos backups**
 - Remover backups com mais de 90 dias
 

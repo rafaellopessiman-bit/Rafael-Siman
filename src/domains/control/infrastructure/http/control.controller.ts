@@ -1,5 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Public } from '../../../../shared/guards/public.decorator';
 import { ControlTowerService } from '../../domain/services/control-tower.service';
 import { AlertService } from '../../domain/services/alert.service';
@@ -10,6 +11,7 @@ import { IAlert } from '../../domain/interfaces/alert.interface';
 @ApiTags('control')
 @Controller('control')
 @Public()
+@SkipThrottle({ ask: true, act: true, extract: true })
 export class ControlController {
   constructor(
     private readonly controlTowerService: ControlTowerService,

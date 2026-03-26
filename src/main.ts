@@ -6,11 +6,13 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './shared/filters/all-exceptions.filter';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
+import { MetricsService } from './shared/telemetry/metrics.service';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const configService = app.get(ConfigService);
+  const metricsService = app.get(MetricsService);
 
   // Security headers
   app.use(helmet());
@@ -27,17 +29,25 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new AllExceptionsFilter());
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  app.useGlobalInterceptors(new LoggingInterceptor(metricsService));
 
   const swagger = new DocumentBuilder()
     .setTitle('Atlas Local API')
     .setDescription('Sistema de inteligência documental — RAG + MongoDB Atlas Local')
     .setVersion('1.0')
+    .addApiKey(
+      { type: 'apiKey', name: 'x-api-key', in: 'header', description: 'Chave de acesso à API' },
+      'api-key',
+    )
+    .addTag('health', 'Verificação de saúde da aplicação')
     .addTag('knowledge', 'Indexação e busca de documentos')
     .addTag('llm', 'RAG — perguntas sobre documentos indexados')
     .addTag('planner', 'Índice de estado dos documentos')
     .addTag('tabular', 'Consultas SQL em dados tabulares')
     .addTag('agent', 'Agente IA com memória conversacional, tools e loop ReAct')
+    .addTag('evaluation', 'Avaliação de qualidade das respostas')
+    .addTag('control', 'Painel de controle operacional')
+    .addTag('telemetry', 'Observabilidade e métricas Prometheus')
     .build();
   SwaggerModule.setup('api', app, SwaggerModule.createDocument(app, swagger));
 

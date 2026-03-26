@@ -2,25 +2,32 @@ import csv
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from typing import Any
 
 from src.exceptions import AtlasLoadError
+from src.knowledge.catalog import infer_document_metadata
+from src.knowledge.image_utils import extract_image_text
+from src.knowledge.office_utils import extract_docx_text, extract_xlsx_text
+from src.knowledge.pdf_utils import extract_pdf_text
+
+SUPPORTED_TEXT_EXTENSIONS = {".txt", ".md", ".json", ".pdf", ".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".docx", ".xlsx"}
+EXTENSION_PRIORITY = {
+    ".txt": 0,
+    ".md": 1,
+    ".json": 2,
+    ".pdf": 3,
+    ".docx": 4,
+    ".xlsx": 5,
+    ".png": 6,
+    ".jpg": 6,
+    ".jpeg": 6,
+    ".tif": 6,
+    ".tiff": 6,
+    ".bmp": 6,
+}
 
 
-SUPPORTED_TEXT_EXTENSIONS = {".txt", ".md", ".json"}
-
-
-def load_documents(documents_path: str | Path, max_workers: int | None = None) -> list[dict[str, str]]:
-    """
-    Load documents from directory, with optional parallel processing.
-    
-    Args:
-        documents_path: Path to directory containing documents
-        max_workers: Number of threads for parallel loading. 
-                     If None, uses min(4, cpu_count())
-    
-    Returns:
-        List of documents with structure: {file_name, file_path, content}
-    """
+def collect_supported_document_paths(documents_path: str | Path) -> list[Path]:
     base_path = Path(documents_path)
 
     if not base_path.exists():
@@ -29,11 +36,17 @@ def load_documents(documents_path: str | Path, max_workers: int | None = None) -
     if not base_path.is_dir():
         raise AtlasLoadError(f"O caminho informado não é uma pasta: {base_path}")
 
-    # Collect all files to process
     file_paths = sorted(
-        path
-        for path in base_path.rglob("*")
-        if path.is_file() and path.suffix.lower() in SUPPORTED_TEXT_EXTENSIONS
+        (
+            path
+            for path in base_path.rglob("*")
+            if path.is_file() and path.suffix.lower() in SUPPORTED_TEXT_EXTENSIONS
+        ),
+        key=lambda path: (
+            EXTENSION_PRIORITY.get(path.suffix.lower(), 99),
+            path.stat().st_size,
+            str(path).lower(),
+        ),
     )
 
     if not file_paths:
@@ -41,18 +54,88 @@ def load_documents(documents_path: str | Path, max_workers: int | None = None) -
             f"Nenhum arquivo textual suportado foi encontrado em: {base_path}"
         )
 
+    return file_paths
+
+
+def load_documents(documents_path: str | Path, max_workers: int | None = None) -> list[dict[str, Any]]:
+    documents, errors = load_documents_with_report(documents_path, max_workers=max_workers)
+
+    if errors:
+        raise AtlasLoadError(errors[0])
+
+    return documents
+
+
+def load_documents_with_report(
+    documents_path: str | Path,
+    max_workers: int | None = None,
+    pdf_ocr_enabled: bool = False,
+    pdf_ocr_command: str = "ocrmypdf",
+    pdf_ocr_language: str = "eng",
+    image_ocr_enabled: bool = False,
+    image_ocr_command: str = "tesseract",
+    image_ocr_language: str = "eng",
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """
+    Load documents from directory, with optional parallel processing.
+
+    Args:
+        documents_path: Path to directory containing documents
+        max_workers: Number of threads for parallel loading.
+                     If None, uses min(4, cpu_count())
+
+    Returns:
+        Tuple with loaded documents and a list of loading errors.
+    """
+    file_paths = collect_supported_document_paths(documents_path)
+
+    return load_document_batch_with_report(
+        file_paths,
+        max_workers=max_workers,
+        pdf_ocr_enabled=pdf_ocr_enabled,
+        pdf_ocr_command=pdf_ocr_command,
+        pdf_ocr_language=pdf_ocr_language,
+        image_ocr_enabled=image_ocr_enabled,
+        image_ocr_command=image_ocr_command,
+        image_ocr_language=image_ocr_language,
+    )
+
+
+def load_document_batch_with_report(
+    file_paths: list[Path],
+    max_workers: int | None = None,
+    pdf_ocr_enabled: bool = False,
+    pdf_ocr_command: str = "ocrmypdf",
+    pdf_ocr_language: str = "eng",
+    image_ocr_enabled: bool = False,
+    image_ocr_command: str = "tesseract",
+    image_ocr_language: str = "eng",
+) -> tuple[list[dict[str, Any]], list[str]]:
+    if not file_paths:
+        return [], []
+
     # Determine thread count (default: 4 or fewer if CPU count is low)
     if max_workers is None:
         import os
         max_workers = min(4, os.cpu_count() or 1)
 
     # Parallel loading using ThreadPoolExecutor
-    documents: list[dict[str, str]] = []
+    documents: list[dict[str, Any]] = []
+    errors: list[str] = []
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all file reading tasks
         future_to_path = {
-            executor.submit(_load_single_document, file_path): file_path
+            executor.submit(
+                _load_single_document,
+                file_path,
+                pdf_ocr_enabled,
+                pdf_ocr_command,
+                pdf_ocr_language,
+                image_ocr_enabled,
+                image_ocr_command,
+                image_ocr_language,
+            ): file_path
             for file_path in file_paths
         }
 
@@ -62,26 +145,49 @@ def load_documents(documents_path: str | Path, max_workers: int | None = None) -
                 doc = future.result()
                 if doc:
                     documents.append(doc)
-            except AtlasLoadError:
-                # Re-raise loading errors
-                raise
+            except AtlasLoadError as exc:
+                file_path = future_to_path[future]
+                errors.append(f"Falha ao carregar {file_path}: {exc}")
             except Exception as exc:
                 file_path = future_to_path[future]
-                raise AtlasLoadError(f"Falha ao carregar {file_path}: {exc}") from exc
+                errors.append(f"Falha ao carregar {file_path}: {exc}")
+
+    if not documents:
+        if errors:
+            raise AtlasLoadError(errors[0])
+        return [], []
 
     # Sort by file path for consistent ordering
     documents.sort(key=lambda d: d["file_path"].lower())
 
-    return documents
+    return documents, errors
 
 
-def _load_single_document(file_path: Path) -> dict[str, str]:
+def _load_single_document(
+    file_path: Path,
+    pdf_ocr_enabled: bool = False,
+    pdf_ocr_command: str = "ocrmypdf",
+    pdf_ocr_language: str = "eng",
+    image_ocr_enabled: bool = False,
+    image_ocr_command: str = "tesseract",
+    image_ocr_language: str = "eng",
+) -> dict[str, Any]:
     """Load a single document. Used by parallel loader."""
-    content = _read_textual_file(file_path)
+    content, base_metadata = _read_textual_file(
+        file_path,
+        pdf_ocr_enabled=pdf_ocr_enabled,
+        pdf_ocr_command=pdf_ocr_command,
+        pdf_ocr_language=pdf_ocr_language,
+        image_ocr_enabled=image_ocr_enabled,
+        image_ocr_command=image_ocr_command,
+        image_ocr_language=image_ocr_language,
+    )
+    metadata = infer_document_metadata(file_path=file_path, content=content, base_metadata=base_metadata)
     return {
         "file_name": file_path.name,
         "file_path": str(file_path),
         "content": content,
+        "metadata": metadata,
     }
 
 
@@ -118,14 +224,44 @@ def load_csv_rows(file_path: str | Path) -> list[dict[str, str]]:
     return rows
 
 
-def _read_textual_file(file_path: Path) -> str:
+def _read_textual_file(
+    file_path: Path,
+    pdf_ocr_enabled: bool = False,
+    pdf_ocr_command: str = "ocrmypdf",
+    pdf_ocr_language: str = "eng",
+    image_ocr_enabled: bool = False,
+    image_ocr_command: str = "tesseract",
+    image_ocr_language: str = "eng",
+) -> tuple[str, dict[str, Any]]:
     suffix = file_path.suffix.lower()
 
     if suffix in {".txt", ".md"}:
-        return _read_plain_text(file_path)
+        return _read_plain_text(file_path), {}
 
     if suffix == ".json":
-        return _read_json_as_text(file_path)
+        return _read_json_as_text(file_path), {}
+
+    if suffix == ".pdf":
+        return extract_pdf_text(
+            file_path,
+            ocr_enabled=pdf_ocr_enabled,
+            ocr_command=pdf_ocr_command,
+            ocr_language=pdf_ocr_language,
+        )
+
+    if suffix in {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}:
+        return extract_image_text(
+            file_path,
+            ocr_enabled=image_ocr_enabled,
+            ocr_command=image_ocr_command,
+            ocr_language=image_ocr_language,
+        )
+
+    if suffix == ".docx":
+        return extract_docx_text(file_path)
+
+    if suffix == ".xlsx":
+        return extract_xlsx_text(file_path)
 
     raise AtlasLoadError(f"Extensão não suportada: {file_path.name}")
 

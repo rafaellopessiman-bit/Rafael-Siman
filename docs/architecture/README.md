@@ -4,16 +4,25 @@ Este diretorio consolida a arquitetura-alvo do atlas_local e o plano de evolucao
 
 ## Conteudo
 
-1. [sprint-5-to-8-blueprint.md](./sprint-5-to-8-blueprint.md)
+1. [sprint-traceability-map-1-to-13.md](./sprint-traceability-map-1-to-13.md)
+   Mapa canonico de rastreabilidade dos Sprints 1 a 13, separando evidencia explicita de documentacao retrospectiva.
+
+2. [retrospective-sprints-1-to-4-foundation.md](./retrospective-sprints-1-to-4-foundation.md)
+   Documentacao retrospectiva padronizada da fundacao legada do produto antes da fase agentic.
+
+3. [retrospective-sprint-9-security-hardening.md](./retrospective-sprint-9-security-hardening.md)
+   Documentacao retrospectiva padronizada da camada de seguranca e controle de acesso.
+
+4. [sprint-5-to-8-blueprint.md](./sprint-5-to-8-blueprint.md)
    Blueprint tecnico do Sprint 5 ao Sprint 8, com ordem exata de implementacao.
 
-2. [repository-target-structure.md](./repository-target-structure.md)
+5. [repository-target-structure.md](./repository-target-structure.md)
    Estrutura concreta de pastas e arquivos a criar no repositorio, com fases de introducao.
 
-3. [gap-analysis-current-vs-target.md](./gap-analysis-current-vs-target.md)
+6. [gap-analysis-current-vs-target.md](./gap-analysis-current-vs-target.md)
    Comparacao entre o estado atual do atlas_local e a arquitetura-alvo, gap por gap.
 
-4. [../adr/0001-target-agentic-architecture.md](../adr/0001-target-agentic-architecture.md)
+7. [../adr/0001-target-agentic-architecture.md](../adr/0001-target-agentic-architecture.md)
    ADR formalizando a arquitetura-alvo da plataforma.
 
 ## Principios desta arquitetura

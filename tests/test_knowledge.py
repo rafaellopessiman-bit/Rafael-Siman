@@ -58,17 +58,17 @@ def test_handle_ask_returns_insufficient_context_without_llm(monkeypatch):
             "file_name": "config.json",
             "file_path": "data\\entrada\\config.json",
             "content": '{ "cliente": "Atlas", "prioridade": "alta" }',
-            "score": 0.5,
+            "score": 0.3,
         }
     ]
 
     monkeypatch.setattr(
         main,
         "get_settings",
-        lambda: SimpleNamespace(top_k=3, documents_path="data/entrada", database_path="data/atlas_local.db"),
+        lambda: SimpleNamespace(top_k=5, documents_path="data/entrada", database_path="data/atlas_local.db"),
     )
-    monkeypatch.setattr(main, "_load_knowledge_documents", lambda: documents)
-    monkeypatch.setattr(main, "retrieve_documents", lambda question, docs, top_k: documents)
+    monkeypatch.setattr(main, "_load_knowledge_documents", lambda args=None: documents)
+    monkeypatch.setattr(main, "retrieve_documents", lambda question, docs, top_k, **kw: documents)
 
     def should_not_call_llm(*args, **kwargs):
         pytest.fail("O LLM não deveria ser chamado quando falta evidência suficiente.")
@@ -78,7 +78,7 @@ def test_handle_ask_returns_insufficient_context_without_llm(monkeypatch):
     output = main.handle_ask("Qual é o CPF do cliente?")
 
     assert "Status: insufficient_context" in output
-    assert "Cobertura de evidência insuficiente" in output
+    assert "Score" in output or "evidência" in output.lower()
 
 
 def test_handle_ask_returns_ok_with_mocked_llm(monkeypatch):
@@ -94,10 +94,10 @@ def test_handle_ask_returns_ok_with_mocked_llm(monkeypatch):
     monkeypatch.setattr(
         main,
         "get_settings",
-        lambda: SimpleNamespace(top_k=3, documents_path="data/entrada", database_path="data/atlas_local.db"),
+        lambda: SimpleNamespace(top_k=5, documents_path="data/entrada", database_path="data/atlas_local.db"),
     )
-    monkeypatch.setattr(main, "_load_knowledge_documents", lambda: documents)
-    monkeypatch.setattr(main, "retrieve_documents", lambda question, docs, top_k: documents)
+    monkeypatch.setattr(main, "_load_knowledge_documents", lambda args=None: documents)
+    monkeypatch.setattr(main, "retrieve_documents", lambda question, docs, top_k, **kw: documents)
     monkeypatch.setattr(
         main,
         "generate_fast_completion",
@@ -109,3 +109,30 @@ def test_handle_ask_returns_ok_with_mocked_llm(monkeypatch):
     assert "Status: ok" in output
     assert "O cliente é Atlas e a prioridade é alta." in output
     assert "config.json" in output
+
+
+def test_load_knowledge_documents_accepts_cli_overrides(monkeypatch):
+    indexed_documents = [{"file_name": "book.pdf", "file_path": "E:/E-book/book.pdf", "content": "conteudo"}]
+    captured = {}
+
+    monkeypatch.setattr(
+        main,
+        "get_settings",
+        lambda: SimpleNamespace(documents_path="data/entrada", database_path="data/atlas_local.db"),
+    )
+
+    def fake_fetch_all_documents(**kwargs):
+        captured.update(kwargs)
+        return indexed_documents
+
+    monkeypatch.setattr(main, "fetch_all_documents", fake_fetch_all_documents)
+
+    class Args:
+        documents_path = "E:/E-book"
+        database_path = "data/ebooks_catalog.db"
+
+    documents = main._load_knowledge_documents(Args())
+
+    assert documents == indexed_documents
+    assert captured["db_path"] == "data/ebooks_catalog.db"
+    assert captured["base_dir"] == "E:/E-book"

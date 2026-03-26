@@ -95,12 +95,22 @@ export class TracingService {
   }
 
   /** Lista runs recentes. */
-  async getRecentRuns(limit = 20) {
-    return this.runRepo.findRecent(limit);
+  async getRecentRuns(limit = 20, skip = 0) {
+    return this.runRepo.findRecent(limit, skip);
+  }
+
+  /** Conta total de runs. */
+  async countRecentRuns() {
+    return this.runRepo.countRecent();
   }
 
   /** Lista runs de uma conversa. */
-  async getRunsByConversation(conversationId: string, limit = 20) {
-    return this.runRepo.findByConversation(conversationId, limit);
+  async getRunsByConversation(conversationId: string, limit = 20, skip = 0) {
+    return this.runRepo.findByConversation(conversationId, limit, skip);
+  }
+
+  /** Conta runs de uma conversa. */
+  async countRunsByConversation(conversationId: string) {
+    return this.runRepo.countByConversation(conversationId);
   }
 }

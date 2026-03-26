@@ -20,6 +20,7 @@
 **Sintoma:** `docker info` falha, health-check reporta FAIL.
 
 **Soluções (em ordem):**
+
 1. Reiniciar Docker Desktop
 2. Verificar WSL2: `wsl --update`
 3. Verificar Hyper-V habilitado: `Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V`
@@ -99,6 +100,7 @@ Get-Process | Where-Object {
 **Sintoma:** `Nenhum arquivo textual suportado foi encontrado`.
 
 **Verificar:**
+
 1. Há arquivos em `data\entrada\`?
 2. Extensões suportadas: `.txt`, `.md`, `.json`
 3. Arquivos não estão vazios?
@@ -124,6 +126,7 @@ Select-String -Pattern 'GROQ_API_KEY' -Path .env
 **Sintoma:** VS Code falha ao reabrir no container.
 
 **Soluções:**
+
 1. Verificar Docker Desktop rodando
 2. `Ctrl+Shift+P` → `Dev Containers: Rebuild Container`
 3. Verificar se `docker-compose.yml` está válido: `docker compose config`

@@ -18,6 +18,7 @@ Você é o **Atlas Architect**. Gere os arquivos de infraestrutura para rodar **
 ### 1. `docker-compose.yml`
 
 Gere um `docker-compose.yml` completo na raiz do projeto com:
+
 - Serviço `mongodb` usando a imagem oficial `mongodb/mongodb-atlas-local` (versão mais recente estável)
 - Volume nomeado para persistência dos dados
 - Health check configurado
@@ -38,6 +39,7 @@ MONGODB_DB={{dbName}}
 ### 3. `devcontainer.json` _(se `includeDevContainer` = sim)_
 
 Gere `.devcontainer/devcontainer.json` com:
+
 - Imagem base Python 3.12
 - Serviço `mongodb` do compose como `dockerComposeFile`
 - Extensions recomendadas: MongoDB for VS Code, Python, Pylance, GitLens
@@ -47,6 +49,7 @@ Gere `.devcontainer/devcontainer.json` com:
 ### 4. Comandos de Validação
 
 Forneça os comandos prontos para:
+
 ```bash
 # Subir o ambiente
 docker compose up -d

@@ -76,6 +76,8 @@ class InMemoryConversationRepository {
   }
   async findById(id: string) { return this.convs.find((c) => c['_id'] === id) ?? null; }
   async findAll() { return this.convs.filter((c) => c['isActive'] !== false); }
+  async findPaginated(skip: number, limit: number) { return this.convs.filter((c) => c['isActive'] !== false).slice(skip, skip + limit); }
+  async countAll() { return this.convs.filter((c) => c['isActive'] !== false).length; }
   async appendMessage(conversationId: string, msg: Record<string, unknown>) {
     const conv = this.convs.find((c) => c['_id'] === conversationId);
     if (!conv) return null;
@@ -113,8 +115,10 @@ class InMemoryAgentRunRepository {
   async create(data: Record<string, unknown>) { const r = { _id: `run-${++this.counter}`, ...data, totalIterations: 0, totalTokens: 0, totalLatencyMs: 0, toolsUsed: [], startedAt: new Date(), schemaVersion: 1, createdAt: new Date(), updatedAt: new Date() }; this.runs.push(r); return r; }
   async finalize(runId: string, data: Record<string, unknown>) { const r = this.runs.find((r) => r['_id'] === runId); if (!r) return null; Object.assign(r, data, { finishedAt: new Date(), updatedAt: new Date() }); return r; }
   async findById(id: string) { return this.runs.find((r) => r['_id'] === id) ?? null; }
-  async findByConversation(conversationId: string, limit = 20) { return this.runs.filter((r) => r['conversationId'] === conversationId).slice(0, limit); }
-  async findRecent(limit = 20) { return this.runs.slice(-limit).reverse(); }
+  async findByConversation(conversationId: string, limit = 20, skip = 0) { return this.runs.filter((r) => r['conversationId'] === conversationId).slice(skip, skip + limit); }
+  async findRecent(limit = 20, skip = 0) { return this.runs.slice(-limit - skip).reverse().slice(skip, skip + limit); }
+  async countRecent() { return this.runs.length; }
+  async countByConversation(conversationId: string) { return this.runs.filter((r) => r['conversationId'] === conversationId).length; }
 }
 
 class InMemoryAgentStepRepository {
@@ -203,12 +207,12 @@ class InMemoryEvalRunRepository {
     return this.runs.find((r) => r.id === id) ?? null;
   }
 
-  async findByDataset(datasetId: string, limit = 20): Promise<IEvalRun[]> {
-    return this.runs.filter((r) => r.datasetId === datasetId).slice(0, limit);
+  async findByDataset(datasetId: string, limit = 20, skip = 0): Promise<IEvalRun[]> {
+    return this.runs.filter((r) => r.datasetId === datasetId).slice(skip, skip + limit);
   }
 
-  async findRecent(limit = 10): Promise<IEvalRun[]> {
-    return [...this.runs].reverse().slice(0, limit);
+  async findRecent(limit = 10, skip = 0): Promise<IEvalRun[]> {
+    return [...this.runs].reverse().slice(skip, skip + limit);
   }
 
   async update(id: string, data: Partial<IEvalRun>): Promise<IEvalRun | null> {
@@ -216,6 +220,14 @@ class InMemoryEvalRunRepository {
     if (idx < 0) return null;
     this.runs[idx] = { ...this.runs[idx], ...data };
     return this.runs[idx];
+  }
+
+  async countRecent(): Promise<number> {
+    return this.runs.length;
+  }
+
+  async countByDataset(datasetId: string): Promise<number> {
+    return this.runs.filter((r) => r.datasetId === datasetId).length;
   }
 }
 
@@ -352,7 +364,7 @@ describe('EvaluationModule (e2e)', () => {
   // ── GET /eval/runs ─────────────────────────────────────────────────────────
 
   describe('GET /eval/runs', () => {
-    it('should return recent eval runs as array', async () => {
+    it('should return recent eval runs as paginated envelope', async () => {
       // Ensure at least one run exists
       await request(app.getHttpServer())
         .post('/eval/run')
@@ -362,8 +374,10 @@ describe('EvaluationModule (e2e)', () => {
         .get('/eval/runs')
         .expect(200);
 
-      expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body.length).toBeGreaterThan(0);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body).toHaveProperty('meta');
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.data.length).toBeGreaterThan(0);
     });
 
     it('should respect the limit query param', async () => {
@@ -372,8 +386,9 @@ describe('EvaluationModule (e2e)', () => {
         .query({ limit: 1 })
         .expect(200);
 
-      expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body.length).toBeLessThanOrEqual(1);
+      expect(Array.isArray(res.body.data)).toBe(true);
+      expect(res.body.data.length).toBeLessThanOrEqual(1);
+      expect(res.body.meta.limit).toBe(1);
     });
   });
 
@@ -413,8 +428,10 @@ describe('EvaluationModule (e2e)', () => {
         .get(`/eval/runs/dataset/${TEST_DATASET_ID}`)
         .expect(200);
 
-      expect(Array.isArray(res.body)).toBe(true);
-      for (const run of res.body) {
+      expect(res.body).toHaveProperty('data');
+      expect(res.body).toHaveProperty('meta');
+      expect(Array.isArray(res.body.data)).toBe(true);
+      for (const run of res.body.data) {
         expect(run.datasetId).toBe(TEST_DATASET_ID);
       }
     });

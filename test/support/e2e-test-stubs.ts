@@ -2,6 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { AllExceptionsFilter } from '../../src/shared/filters/all-exceptions.filter';
 import { LoggingInterceptor } from '../../src/shared/interceptors/logging.interceptor';
+import { MetricsService } from '../../src/shared/telemetry/metrics.service';
 
 export class InMemoryKnowledgeRepository {
   private docs: Array<Record<string, unknown>> = [];
@@ -57,6 +58,14 @@ export class InMemoryKnowledgeRepository {
     const before = this.docs.length;
     this.docs = this.docs.filter((doc) => doc['sourceFile'] !== sourceFile);
     return before - this.docs.length;
+  }
+
+  async findPaginated(skip: number, limit: number) {
+    return this.docs.slice(skip, skip + limit);
+  }
+
+  async countAll() {
+    return this.docs.length;
   }
 }
 
@@ -180,6 +189,14 @@ export class InMemoryConversationRepository {
     return [...this.conversations];
   }
 
+  async findPaginated(skip: number, limit: number) {
+    return [...this.conversations].slice(skip, skip + limit);
+  }
+
+  async countAll() {
+    return this.conversations.length;
+  }
+
   async appendMessage(conversationId: string, message: Record<string, unknown>) {
     const conversation = this.conversations.find((item) => item['_id'] === conversationId);
     if (!conversation) {
@@ -283,12 +300,20 @@ export class InMemoryAgentRunRepository {
     return this.runs.find((item) => item['_id'] === runId) ?? null;
   }
 
-  async findByConversation(conversationId: string, limit = 20) {
-    return this.runs.filter((item) => item['conversationId'] === conversationId).slice(0, limit);
+  async findByConversation(conversationId: string, limit = 20, skip = 0) {
+    return this.runs.filter((item) => item['conversationId'] === conversationId).slice(skip, skip + limit);
   }
 
-  async findRecent(limit = 20) {
-    return [...this.runs].reverse().slice(0, limit);
+  async findRecent(limit = 20, skip = 0) {
+    return [...this.runs].reverse().slice(skip, skip + limit);
+  }
+
+  async countRecent() {
+    return this.runs.length;
+  }
+
+  async countByConversation(conversationId: string) {
+    return this.runs.filter((item) => item['conversationId'] === conversationId).length;
   }
 }
 
@@ -403,24 +428,39 @@ export class InMemoryEvalDatasetRepository {
 }
 
 export class InMemoryEvalRunRepository {
+  private runs: Array<Record<string, unknown>> = [];
+
   async create(data: Record<string, unknown>) {
-    return { ...data, schemaVersion: 1, createdAt: new Date(), updatedAt: new Date() };
+    const doc = { ...data, schemaVersion: 1, createdAt: new Date(), updatedAt: new Date() };
+    this.runs.push(doc);
+    return doc;
   }
 
-  async findById() {
-    return null;
+  async findById(id: string) {
+    return this.runs.find((r) => r['evalRunId'] === id || r['id'] === id) ?? null;
   }
 
-  async findByDataset() {
-    return [];
+  async findByDataset(datasetId: string, limit = 20, skip = 0) {
+    return this.runs.filter((r) => r['datasetId'] === datasetId).slice(skip, skip + limit);
   }
 
-  async findRecent() {
-    return [];
+  async findRecent(limit = 10, skip = 0) {
+    return [...this.runs].reverse().slice(skip, skip + limit);
   }
 
-  async update() {
-    return null;
+  async update(id: string, data: Record<string, unknown>) {
+    const run = this.runs.find((r) => r['evalRunId'] === id || r['id'] === id);
+    if (!run) return null;
+    Object.assign(run, data, { updatedAt: new Date() });
+    return run;
+  }
+
+  async countRecent() {
+    return this.runs.length;
+  }
+
+  async countByDataset(datasetId: string) {
+    return this.runs.filter((r) => r['datasetId'] === datasetId).length;
   }
 }
 
@@ -530,5 +570,5 @@ export function applyTestAppConfig(app: INestApplication): void {
     }),
   );
   app.useGlobalFilters(new AllExceptionsFilter());
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  app.useGlobalInterceptors(new LoggingInterceptor(app.get(MetricsService)));
 }

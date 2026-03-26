@@ -175,6 +175,14 @@ class InMemoryConversationRepository {
     return this.conversations.filter((c) => c['isActive'] !== false);
   }
 
+  async findPaginated(skip: number, limit: number) {
+    return this.conversations.filter((c) => c['isActive'] !== false).slice(skip, skip + limit);
+  }
+
+  async countAll() {
+    return this.conversations.filter((c) => c['isActive'] !== false).length;
+  }
+
   async appendMessage(conversationId: string, message: Record<string, unknown>) {
     const conv = this.conversations.find((c) => c['_id'] === conversationId);
     if (!conv) return null;
@@ -264,14 +272,22 @@ class InMemoryAgentRunRepository {
     return this.runs.find((r) => r['_id'] === runId) ?? null;
   }
 
-  async findByConversation(conversationId: string, limit = 20) {
+  async findByConversation(conversationId: string, limit = 20, skip = 0) {
     return this.runs
       .filter((r) => r['conversationId'] === conversationId)
-      .slice(0, limit);
+      .slice(skip, skip + limit);
   }
 
-  async findRecent(limit = 20) {
-    return this.runs.slice(-limit).reverse();
+  async findRecent(limit = 20, skip = 0) {
+    return this.runs.slice(-limit - skip).reverse().slice(skip, skip + limit);
+  }
+
+  async countRecent() {
+    return this.runs.length;
+  }
+
+  async countByConversation(conversationId: string) {
+    return this.runs.filter((r) => r['conversationId'] === conversationId).length;
   }
 }
 
@@ -392,14 +408,16 @@ class InMemoryEvalRunRepository {
     return r;
   }
   async findById(id: string) { return this.runs.find((r) => r['id'] === id) ?? null; }
-  async findByDataset(datasetId: string, limit = 20) { return this.runs.filter((r) => r['datasetId'] === datasetId).slice(0, limit); }
-  async findRecent(limit = 10) { return [...this.runs].reverse().slice(0, limit); }
+  async findByDataset(datasetId: string, limit = 20, skip = 0) { return this.runs.filter((r) => r['datasetId'] === datasetId).slice(skip, skip + limit); }
+  async findRecent(limit = 10, skip = 0) { return [...this.runs].reverse().slice(skip, skip + limit); }
   async update(id: string, data: Record<string, unknown>) {
     const idx = this.runs.findIndex((r) => r['id'] === id);
     if (idx < 0) return null;
     this.runs[idx] = { ...this.runs[idx], ...data };
     return this.runs[idx];
   }
+  async countRecent() { return this.runs.length; }
+  async countByDataset(datasetId: string) { return this.runs.filter((r) => r['datasetId'] === datasetId).length; }
 }
 
 // ── Stub for Tool Execution Repository ─────────────────────────────────────
@@ -885,7 +903,9 @@ describe('Atlas Local API (e2e)', () => {
         .get('/agent/conversations')
         .expect(200);
 
-      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body).toHaveProperty('meta');
+      expect(Array.isArray(res.body.data)).toBe(true);
     });
   });
 
@@ -1051,7 +1071,9 @@ describe('Atlas Local API (e2e)', () => {
         .get('/agent/runs')
         .expect(200);
 
-      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body).toHaveProperty('meta');
+      expect(Array.isArray(res.body.data)).toBe(true);
     });
   });
 
@@ -1066,7 +1088,9 @@ describe('Atlas Local API (e2e)', () => {
         .get(`/agent/conversations/${conv.body._id}/runs`)
         .expect(200);
 
-      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body).toHaveProperty('meta');
+      expect(Array.isArray(res.body.data)).toBe(true);
     });
   });
 

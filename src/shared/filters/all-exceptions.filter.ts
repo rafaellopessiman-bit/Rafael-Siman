@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { randomBytes } from 'crypto';
 
 interface MongoServerError extends Error {
   code?: number;
@@ -15,6 +16,8 @@ interface MongoServerError extends Error {
 interface MongooseValidationError extends Error {
   errors: Record<string, unknown>;
 }
+
+type ErrorCategory = 'validation' | 'conflict' | 'auth' | 'not_found' | 'internal';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -25,8 +28,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
+    const errorId = randomBytes(4).toString('hex');
+    const correlationId =
+      (request.headers['x-correlation-id'] as string) ?? errorId;
+
     let statusCode: number;
     let message: string | string[];
+    let category: ErrorCategory;
+    let details: Array<{ field?: string; issue: string }> | undefined;
 
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
@@ -37,30 +46,56 @@ export class AllExceptionsFilter implements ExceptionFilter {
         const resp = exceptionResponse as { message?: string | string[] };
         message = resp.message ?? exception.message;
       }
+
+      // Extract validation details from class-validator pipe errors
+      if (statusCode === HttpStatus.BAD_REQUEST && Array.isArray(message)) {
+        details = message.map((m) => ({ issue: m }));
+      }
+
+      category = this.categorize(statusCode);
     } else if (this.isMongooseValidationError(exception)) {
       statusCode = HttpStatus.UNPROCESSABLE_ENTITY;
-      message = Object.values(exception.errors)
-        .map((e) => (e as { message?: string }).message ?? String(e))
-        .join('; ');
+      const errors = Object.entries(exception.errors);
+      details = errors.map(([field, e]) => ({
+        field,
+        issue: (e as { message?: string }).message ?? String(e),
+      }));
+      message = details.map((d) => d.issue).join('; ');
+      category = 'validation';
     } else if (this.isMongoServerError(exception) && exception.code === 11000) {
       statusCode = HttpStatus.CONFLICT;
       message = 'Duplicate key';
+      category = 'conflict';
     } else {
       statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
       message = 'Internal server error';
+      category = 'internal';
     }
 
     this.logger.error(
-      `${request.method} ${request.url} → ${statusCode}`,
+      `[${errorId}] ${request.method} ${request.url} → ${statusCode}`,
       exception instanceof Error ? exception.stack : undefined,
     );
 
     response.status(statusCode).json({
       statusCode,
       message,
+      errorId,
+      correlationId,
+      category,
+      retryable: statusCode >= 500,
+      ...(details ? { details } : {}),
       timestamp: new Date().toISOString(),
       path: request.url,
     });
+  }
+
+  private categorize(status: number): ErrorCategory {
+    if (status === HttpStatus.NOT_FOUND) return 'not_found';
+    if (status === HttpStatus.CONFLICT) return 'conflict';
+    if (status === HttpStatus.UNAUTHORIZED || status === HttpStatus.FORBIDDEN) return 'auth';
+    if (status < 500) return 'validation';
+    return 'internal';
   }
 
   private isMongoServerError(err: unknown): err is MongoServerError {

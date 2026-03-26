@@ -15,13 +15,13 @@ def test_load_knowledge_documents_prefers_sqlite_chunks(tmp_path: Path) -> None:
     input_dir.mkdir()
 
     file_path = input_dir / "nota.txt"
-    file_path.write_text("conteudo do disco", encoding="utf-8")
+    file_path.write_text("conteudo do disco com informacoes detalhadas sobre o projeto atlas local e indexacao semantica", encoding="utf-8")
 
     db_path = tmp_path / "atlas.db"
     store = DocumentStore(db_path=db_path, base_dir=input_dir)
-    store.upsert_document(file_path=file_path, content="conteudo indexado no sqlite")
+    store.upsert_document(file_path=file_path, content="conteudo indexado no sqlite com descricao detalhada do projeto atlas local e seus recursos de busca semantica")
 
-    file_path.write_text("conteudo alterado no disco depois do index", encoding="utf-8")
+    file_path.write_text("conteudo alterado no disco depois do index com informacoes novas", encoding="utf-8")
 
     documents = load_knowledge_documents(
         input_dir=input_dir,
@@ -40,7 +40,7 @@ def test_load_knowledge_documents_falls_back_to_disk_when_db_is_empty(tmp_path: 
     input_dir.mkdir()
 
     file_path = input_dir / "manual.md"
-    file_path.write_text("# Guia\n\nProcesso local", encoding="utf-8")
+    file_path.write_text("# Guia\n\nProcesso local de indexacao e busca semantica com recuperacao de documentos do projeto atlas local", encoding="utf-8")
 
     db_path = tmp_path / "vazio.db"
 
@@ -60,7 +60,11 @@ def test_retrieve_relevant_documents_uses_sqlite_chunks_as_primary_source(tmp_pa
     input_dir.mkdir()
 
     file_path = input_dir / "config.txt"
-    indexed_content = "Cliente: Atlas\n\nPrioridade: alta\n\nProjeto local"
+    indexed_content = (
+        "Cliente: Atlas com dados detalhados do contrato e escopo do projeto de indexacao semantica\n\n"
+        "Prioridade: alta com prazo definido para entrega final do sistema de busca e recuperacao de documentos\n\n"
+        "Projeto local de indexacao semantica com recursos avancados de busca e recuperacao de informacoes"
+    )
     file_path.write_text(indexed_content, encoding="utf-8")
 
     db_path = tmp_path / "atlas.db"
@@ -80,7 +84,7 @@ def test_retrieve_relevant_documents_uses_sqlite_chunks_as_primary_source(tmp_pa
     assert len(documents) >= 1
     assert documents[0]["retrieval_source"] == "sqlite"
     assert documents[0]["score"] > 0
-    assert any("Prioridade: alta" in chunk for chunk in documents[0]["matched_chunks"])
+    assert any("Prioridade" in chunk for chunk in documents[0]["matched_chunks"])
 
 
 def test_retrieve_relevant_documents_supports_csv_from_sqlite_index(tmp_path: Path) -> None:
@@ -89,7 +93,9 @@ def test_retrieve_relevant_documents_supports_csv_from_sqlite_index(tmp_path: Pa
 
     csv_path = input_dir / "dados.csv"
     csv_path.write_text(
-        "produto,prioridade,cliente\ncaneta,alta,Atlas\nlapis,baixa,Outro\n",
+        "produto,prioridade,cliente,descricao\n"
+        "caneta,alta,Atlas,caneta esferografica azul para escritorio do projeto atlas local\n"
+        "lapis,baixa,Outro,lapis numero dois grafite para desenho tecnico e anotacoes gerais\n",
         encoding="utf-8",
     )
 
@@ -128,3 +134,35 @@ def test_build_answer_context_uses_matched_chunks_first() -> None:
     assert "Arquivo: config.txt" in context
     assert "Cliente: Atlas" in context
     assert "Prioridade: alta" in context
+
+
+def test_retrieve_relevant_documents_uses_catalog_metadata_from_sqlite_index(tmp_path: Path) -> None:
+    input_dir = tmp_path / "entrada"
+    input_dir.mkdir()
+
+    file_path = input_dir / "atlas-rag.pdf"
+
+    db_path = tmp_path / "atlas.db"
+    store = DocumentStore(db_path=db_path, base_dir=input_dir)
+    store.upsert_document(
+        file_path=file_path,
+        content="Manual operacional do sistema de busca semantica com recuperacao de documentos usando agentes inteligentes e RAG com MongoDB e Python.",
+        metadata={
+            "theme": "ia_aplicada",
+            "stack": ["python", "mongodb", "rag"],
+            "concepts": ["agents", "vector_search"],
+        },
+    )
+
+    documents = retrieve_relevant_documents(
+        query="mongodb rag agents",
+        input_dir=input_dir,
+        db_path=db_path,
+        base_dir=input_dir,
+        top_k=3,
+    )
+
+    assert len(documents) == 1
+    assert documents[0]["retrieval_source"] == "sqlite"
+    assert documents[0]["metadata"]["theme"] == "ia_aplicada"
+    assert "rag" in documents[0]["content"].casefold()

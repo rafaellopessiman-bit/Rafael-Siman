@@ -5,9 +5,27 @@ def build_knowledge_prompt(question: str, documents: list[dict[str, Any]]) -> st
     context_blocks = []
 
     for index, document in enumerate(documents, start=1):
-        raw_content = str(document.get("content", "")).strip()
-        normalized_content = " ".join(raw_content.split())
-        truncated_content = normalized_content[:1500]
+        metadata = document.get("metadata") if isinstance(document.get("metadata"), dict) else {}
+        matched_chunks = [
+            " ".join(str(chunk).split())[:500]
+            for chunk in (document.get("matched_chunks") or [])
+            if str(chunk).strip()
+        ][:3]
+
+        if matched_chunks:
+            evidence_lines = [f"Trecho relevante {chunk_index}: {chunk}" for chunk_index, chunk in enumerate(matched_chunks, start=1)]
+        else:
+            raw_content = str(document.get("content_preview") or document.get("content", "")).strip()
+            normalized_content = " ".join(raw_content.split())
+            evidence_lines = [f"Conteúdo recuperado: {normalized_content[:1500]}"]
+
+        metadata_lines = []
+        if metadata.get("theme"):
+            metadata_lines.append(f"Tema: {metadata['theme']}")
+        if metadata.get("stack"):
+            metadata_lines.append("Stack: " + ", ".join(str(item) for item in metadata["stack"]))
+        if metadata.get("concepts"):
+            metadata_lines.append("Conceitos: " + ", ".join(str(item) for item in metadata["concepts"]))
 
         context_blocks.append(
             "\n".join(
@@ -16,7 +34,8 @@ def build_knowledge_prompt(question: str, documents: list[dict[str, Any]]) -> st
                     f"Arquivo: {document.get('file_name', '')}",
                     f"Caminho: {document.get('file_path', '')}",
                     f"Score: {document.get('score', 0.0)}",
-                    f"Conteúdo recuperado: {truncated_content}",
+                    *metadata_lines,
+                    *evidence_lines,
                 ]
             )
         )
@@ -37,6 +56,8 @@ Instruções de resposta:
 - responda em português
 - seja técnico e objetivo
 - use apenas as informações do contexto
+- priorize trechos relevantes e metadados explícitos sobre inferências gerais
+- se houver comandos, APIs, índices, flags ou procedimentos concretos no contexto, use-os na resposta
 - cite os arquivos usados na resposta
 """
 

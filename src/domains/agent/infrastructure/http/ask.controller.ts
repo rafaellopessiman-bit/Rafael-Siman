@@ -1,5 +1,6 @@
 import { Body, Controller, Post, Query, Sse } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { Observable } from 'rxjs';
 import { AskDocumentsUseCase } from '../../../llm/application/use-cases/ask-documents.use-case';
 import { AskStreamUseCase } from '../../../llm/application/use-cases/ask-stream.use-case';
@@ -7,6 +8,8 @@ import { AskDto, AskResponse, CitationMode } from '../../application/dtos/ask.dt
 
 @ApiTags('ask')
 @Controller('ask')
+@SkipThrottle({ act: true, extract: true })
+@Throttle({ ask: {} })
 export class AskController {
   constructor(
     private readonly askDocuments: AskDocumentsUseCase,
