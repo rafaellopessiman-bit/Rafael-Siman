@@ -29,7 +29,7 @@ Write-Host "`n=== Atlas Local | Backup ===" -ForegroundColor Cyan
 # Ler credenciais do .env (fallback para defaults de desenvolvimento)
 $envFilePath = Join-Path $Root '.env'
 $_mongoUser = 'admin'
-$_mongoPass = 'AtlasLocal2026!Secure'
+$_mongoPass = ''
 $_mongoDB   = 'atlas_local_db'
 if (Test-Path $envFilePath) {
     $envContent = Get-Content $envFilePath -Raw
@@ -37,7 +37,7 @@ if (Test-Path $envFilePath) {
     if ($envContent -match '(?m)^MONGODB_PASSWORD=(.+)$') { $_mongoPass = $Matches[1].Trim() }
     if ($envContent -match '(?m)^MONGODB_DB=(.+)$')   { $_mongoDB   = $Matches[1].Trim() }
 }
-$_mongoUri = "mongodb://${_mongoUser}:${_mongoPass}@localhost:27017/${_mongoDB}?authSource=admin"
+$_mongoUri = "mongodb://${_mongoUser}:${_mongoPass}@localhost:27017/${_mongoDB}?authSource=${_mongoDB}"
 
 # --- MongoDB dump ---
 $mongoBackupDir = Join-Path $BackupDir "mongo_$Timestamp"
