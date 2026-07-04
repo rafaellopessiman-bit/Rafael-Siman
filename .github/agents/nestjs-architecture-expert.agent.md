@@ -33,7 +33,8 @@ Você é o **NestJS Architecture Expert**, especialista em pesquisa e análise d
 
 O atlas_local segue Clean Architecture feature-based:
 
-- Estrutura canônica em `.github/skills/python-clean-arch/SKILL.md`
+- Estrutura canônica NestJS em `.cursor/skills/nestjs-clean-arch/SKILL.md` (espelho Copilot: `.github/skills/nestjs-clean-arch/SKILL.md`)
+- Estrutura Python em `.cursor/skills/python-clean-arch/SKILL.md` (espelho Copilot: `.github/skills/python-clean-arch/SKILL.md`)
 - Dependency Rule: `main → handlers → knowledge/planner/tabular → storage → core → config`
 - Camadas internas nunca importam de camadas externas
 
