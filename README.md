@@ -142,7 +142,7 @@ REMEDIATION_ISOLATE_FLAGS=no_usable_chunks,very_short_document,repetitive_conten
 MONGODB_USER=admin
 MONGODB_PASSWORD=TROQUE_POR_SENHA_SEGURA
 MONGODB_PORT=27017
-MONGODB_URI=mongodb://atlas_app:TROQUE_POR_OUTRA_SENHA_SEGURA@localhost:27017/atlas_local_db?authSource=atlas_local_db
+MONGODB_URI=mongodb://admin:TROQUE_POR_SENHA_SEGURA@localhost:27017/atlas_local_db?authSource=admin
 MONGODB_DB=atlas_local_db
 ```
 
