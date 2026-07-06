@@ -129,10 +129,15 @@ from src.core.config import get_settings
 from src.exceptions import StorageError
 
 
+_client: MongoClient | None = None
+
+
 def get_collection(db_name: str, collection_name: str) -> Collection:
+    global _client
     settings = get_settings()
-    client = MongoClient(settings.mongodb_uri)
-    return client[db_name][collection_name]
+    if _client is None:
+        _client = MongoClient(settings.mongodb_uri)
+    return _client[db_name][collection_name]
 
 
 def upsert(collection: Collection, filter_q: dict, data: dict) -> None:

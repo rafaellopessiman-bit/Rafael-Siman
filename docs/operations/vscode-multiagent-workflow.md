@@ -9,7 +9,26 @@ Este playbook adapta o material que ja existe no repositorio para um fluxo multi
 - Agentes: `.github/agents/*.agent.md`
 - Prompts: `.github/prompts/*.prompt.md`
 - Instrucoes compartilhadas: `.github/copilot-instructions.md`
+- Skills (Cursor): `.cursor/skills/*/SKILL.md`
+- Skills (GitHub Copilot): `.github/skills/*/SKILL.md` — espelho das skills do Cursor
 - Validacoes locais: `.vscode/tasks.json`
+
+## Agent Skills (Cursor vs Copilot)
+
+| Ferramenta | Caminho canonico | Descoberta |
+| --- | --- | --- |
+| Cursor Agent | `.cursor/skills/<nome>/SKILL.md` | Settings → Rules → Agent Decides |
+| GitHub Copilot | `.github/skills/<nome>/SKILL.md` | Agentes Copilot no VS Code |
+
+As skills deste repositorio sao mantidas em duplicata sincronizada nos dois caminhos. Ao editar uma skill, atualize **ambos** os diretorios ou copie de `.cursor/skills/` para `.github/skills/`.
+
+Skills disponiveis:
+
+- `python-clean-arch` — Clean Architecture Python (`paths: src/**/*.py`)
+- `nestjs-clean-arch` — Clean Architecture NestJS (`paths: **/*.ts`)
+- `mongodb-atlas-schema` — Schema design MongoDB/Mongoose (`paths: **/*.ts`)
+
+O comando `/migrate-to-skills` converte apenas `.cursor/rules/` e `.cursor/commands/`; nao move skills de `.github/skills/`.
 
 ## Fluxo Recomendado
 

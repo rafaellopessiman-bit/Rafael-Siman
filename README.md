@@ -140,9 +140,9 @@ WATCH_INTERVAL_SECONDS=30
 WATCH_REMEDIATION_POLICY=full-auto
 REMEDIATION_ISOLATE_FLAGS=no_usable_chunks,very_short_document,repetitive_content,numeric_heavy,low_vocabulary_document
 MONGODB_USER=admin
-MONGODB_PASSWORD=AtlasLocal2026!Secure
+MONGODB_PASSWORD=TROQUE_POR_SENHA_SEGURA
 MONGODB_PORT=27017
-MONGODB_URI=mongodb://admin:AtlasLocal2026!Secure@localhost:27017/atlas_local_db?authSource=admin
+MONGODB_URI=mongodb://admin:TROQUE_POR_SENHA_SEGURA@localhost:27017/atlas_local_db?authSource=admin
 MONGODB_DB=atlas_local_db
 ```
 
